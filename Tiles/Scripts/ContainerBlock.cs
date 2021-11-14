@@ -33,6 +33,8 @@ public class ContainerBlock : MonoBehaviour
     private bool rotated180Degrees;
     public float spikedQuestionBlockTimeToRotate = 3f;
 
+    private float rotatingFlipBlockAnim = 0f;
+
     public enum WhatItContains {
         Coin,
         MultipleCoins,
@@ -119,6 +121,8 @@ public class ContainerBlock : MonoBehaviour
         if (typeOfContainerBlock == TypeOfContainerBlock.SpikedQuestionBlock && !usedBlock) {
             RotateSpikedQuestionBlock();
         }
+
+        if (rotatingFlipBlockAnim > 0f) { RotatingFlipBlock(); }
     }
 
     public void BlockWork() {
@@ -198,6 +202,12 @@ public class ContainerBlock : MonoBehaviour
                     break;
 
                 case WhatItContains.NothingButDoesntTurnToUsedBlock:
+                    if (typeOfContainerBlock == TypeOfContainerBlock.FlipBlock) {
+
+                        rotatingFlipBlockAnim++;
+                        Player.GetPlayerMovement(block.playerThatCollided).ResetVelocityY();
+                    }
+
                     playUsedBlockAnim = false;
                     break;
 
@@ -313,6 +323,25 @@ public class ContainerBlock : MonoBehaviour
 
             rotated180Degrees = !rotated180Degrees;
             spikesRotatingDT = 0f;
+        }
+    }
+
+    public void RotatingFlipBlock()
+    {
+        rotatingFlipBlockAnim += Time.deltaTime;
+
+        block.PlayAnim("flip_block_rotating");
+        gameObject.layer = 11;
+        boxCollider.isTrigger = true;
+        hitBlock.canHit = false;
+
+        if (rotatingFlipBlockAnim > 6f) {
+            block.PlayAnim("flip_block");
+            gameObject.layer = 10;
+            boxCollider.isTrigger = false;
+            hitBlock.canHit = true;
+
+            rotatingFlipBlockAnim = 0f;
         }
     }
 }
