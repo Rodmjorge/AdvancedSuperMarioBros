@@ -11,22 +11,18 @@ public class Enemies : Actor
         targetID = LevelLoader.CreateVariable(s, beforeEqual, "targetId", targetID);
     }
 
-    public virtual void Disintegrated(GameObject GO)
+    public virtual IEnumerator Disintegrated(GameObject GO)
     {
-        BooleanBoxCollider(false);
         pauseActor = true;
 
-        StartCoroutine(DisintegratedAnim(GO.transform.position.x > transform.position.x));
-    }
-
-    private IEnumerator DisintegratedAnim(bool goLeft)
-    {
+        BooleanBoxCollider(false);
         rigidBody.velocity = RigidVector(null, 10f);
 
+        bool goLeft = GO.transform.position.x > transform.position.x;
         while (true) {
             if (ResumeGaming()) {
-                rigidBody.velocity = RigidVector(goLeft ? -3f : 3f, null);
-                transform.eulerAngles += new Vector3(0f, 0f, goLeft ? -5f : 5f);
+                rigidBody.velocity = RigidVector(goLeft ? -5f : 5f, null);
+                transform.localEulerAngles += new Vector3(0f, 0f, goLeft ? -15f : 15f);
             }
 
             yield return new WaitForFixedUpdate();
@@ -39,10 +35,8 @@ public class Enemies : Actor
     {
         if (actor.IsActor(out HitBlock hitBlock)) {
             if (hitBlock.TheBloqHasIndeedBeenHit() && hitBlock.TimeOfHitting() < 0.1f)
-                Disintegrated(hitBlock.gameObject);
+                StartCoroutine(Disintegrated(hitBlock.gameObject));
         }
-
-        base.CollidedBelow(GO, actor);
     }
 
     public override void PlayerCollidedAbove(Player player)

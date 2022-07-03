@@ -44,7 +44,7 @@ public class WalkingEnemies : Enemies
             }
         }
         else
-            reachedGround = ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, LayerMaskInterface.grounded);
+            reachedGround = ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, LayerMaskInterface.grounded, ColliderCheck.RaycastThird.All, 1, true);
     }
 
 
