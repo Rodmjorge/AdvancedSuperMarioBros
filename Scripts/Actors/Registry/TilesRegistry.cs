@@ -26,6 +26,16 @@ public class TilesRegistry : ActorRegistry
             isKinematic = true,
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "question_block")
         });
+        RegisterActor("3wide_question_block", new ActorSettings() {
+            actorClass = new ThreeWideContainerBlock(),
+            layer = LayerMaskInterface.blockLayer,
+
+            defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "3block_question_blok1"),
+            size = new Vector2(3f, 1f),
+            sortingLayer = SortingLayerInterface.blockLayer,
+            isKinematic = true,
+            animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "3wide_question_block")
+        });
 
         base.Awake();
     }

@@ -146,17 +146,19 @@ public abstract class Actor : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        GameObject colliderGameObject = collision.gameObject;
-        Actor colliderActor = colliderGameObject.GetComponent<Actor>();
+        if (Resume()) {
+            GameObject colliderGameObject = collision.gameObject;
+            Actor colliderActor = colliderGameObject.GetComponent<Actor>();
 
-        BoxColliderSettings colliderBcs = new BoxColliderSettings(colliderActor, colliderGameObject);
+            BoxColliderSettings colliderBcs = new BoxColliderSettings(colliderActor, colliderGameObject);
 
-        if (colliderBcs.GetExtentsYNeg() > bcs.GetExtentsYPos() - bcs.boxColliderBounds[0])
-            CollidedAbove(colliderGameObject, colliderActor);
-        if (colliderBcs.GetExtentsYNeg() < bcs.GetExtentsYNeg() + bcs.boxColliderBounds[1])
-            CollidedBelow(colliderGameObject, colliderActor);
+            if (colliderBcs.GetExtentsYNeg() > bcs.GetExtentsYPos() - bcs.boxColliderBounds[0])
+                CollidedAbove(colliderGameObject, colliderActor);
+            if (colliderBcs.GetExtentsYNeg() < bcs.GetExtentsYNeg() + bcs.boxColliderBounds[1])
+                CollidedBelow(colliderGameObject, colliderActor);
 
-        Collided(colliderGameObject, colliderActor);
+            Collided(colliderGameObject, colliderActor);
+        }
     }
 
     private void OnCollisionStay2D(Collision2D collision)
@@ -166,17 +168,19 @@ public abstract class Actor : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        GameObject colliderGameObject = collision.gameObject;
-        Actor colliderActor = colliderGameObject.GetComponent<Actor>();
+        if (Resume()) {
+            GameObject colliderGameObject = collision.gameObject;
+            Actor colliderActor = colliderGameObject.GetComponent<Actor>();
 
-        BoxColliderSettings colliderBcs = new BoxColliderSettings(colliderActor, colliderGameObject);
+            BoxColliderSettings colliderBcs = new BoxColliderSettings(colliderActor, colliderGameObject);
 
-        if (colliderBcs.GetExtentsYNeg() > bcs.GetExtentsYPos() - bcs.boxColliderBounds[0])
-            StayingCollidedAbove(colliderGameObject, colliderActor);
-        if (colliderBcs.GetExtentsYNeg() < bcs.GetExtentsYNeg() + bcs.boxColliderBounds[1])
-            StayingCollidedBelow(colliderGameObject, colliderActor);
+            if (colliderBcs.GetExtentsYNeg() > bcs.GetExtentsYPos() - bcs.boxColliderBounds[0])
+                StayingCollidedAbove(colliderGameObject, colliderActor);
+            if (colliderBcs.GetExtentsYNeg() < bcs.GetExtentsYNeg() + bcs.boxColliderBounds[1])
+                StayingCollidedBelow(colliderGameObject, colliderActor);
 
-        StayingCollided(colliderGameObject, colliderActor);
+            StayingCollided(colliderGameObject, colliderActor);
+        }
     }
 
 

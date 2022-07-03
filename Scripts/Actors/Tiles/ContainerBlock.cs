@@ -36,10 +36,42 @@ public class ContainerBlock : HitBlock
     {
         anim.SetBool(UsedBlockAnimString(), getUsed);
 
-        string container = (containerObject == null) ? "[id=goomba]" : containerObject;
+        string container = (containerObject == null) ? "null" : containerObject;
+        const float time = 0.15f;
 
-        Actor actor = LevelLoader.CheckLineInBrackets(container, gameObject, true, null, ActorRegistry.ActorSettings.CreatedActorTypes.EnableAfterTime, 0.1f);
-        actor.rigidBody.velocity = RigidVector(null, 15f);
+        if (container != "null") {
+            Actor actor = LevelLoader.CheckLineInBrackets(container, gameObject, true, null, ActorRegistry.ActorSettings.CreatedActorTypes.EnableAfterTime, time);
+
+            actor.transform.position = new Vector3(actor.transform.position.x, bcs.GetExtentsYPos() - 0.5f, 0f);
+            actor.rigidBody.velocity = RigidVector(null, 12f);
+
+            if (actor.gameObject.transform.localScale.x > 1f || actor.gameObject.transform.localScale.y > 1f)
+                StartCoroutine(SizeIncreaseOfActor(actor.gameObject.transform, time, 0.05f));
+        }
+    }
+
+    private IEnumerator SizeIncreaseOfActor(Transform transF, float untilTime, float timeTakeToIncrease)
+    {
+        Vector3 expectedSize = transF.localScale;
+
+        transF.localScale = Vector3.one;
+        TimerClass timerT = new TimerClass(1);
+
+        while (true) {
+            if (Resume()) {
+
+                if (timerT.UntilTime(untilTime)) {
+                    transF.localScale += new Vector3((expectedSize.x / (timeTakeToIncrease / 0.05f)) * Time.fixedDeltaTime * 7f, (expectedSize.y / (timeTakeToIncrease / 0.05f)) * Time.fixedDeltaTime * 7f, 0f);
+
+                    if (transF.localScale.x >= expectedSize.x && transF.localScale.y >= expectedSize.y) {
+                        transF.localScale = expectedSize;
+                        yield break;
+                    }
+                }
+            }
+
+            yield return new WaitForFixedUpdate();
+        }
     }
 
     public virtual IEnumerator UsedTimeCounter()
