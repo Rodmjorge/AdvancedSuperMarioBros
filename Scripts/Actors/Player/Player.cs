@@ -13,9 +13,9 @@ public class Player : Actor
         new Vector2[] { new Vector2(0.85f, 1.7f), new Vector2(0f, -.15f) }, //big size
         new Vector2[] { new Vector2(0.85f, 0.9f), new Vector2(0f, -.05f) } //crouched big size
     };
-    public static readonly Vector3[] shiftWhenHolding = new Vector3[] {
-        new Vector3(-0.55f, 0.1f), //small size
-        new Vector3(-0.55f, 0f) //crouched small size
+    public static readonly float[] shiftYWhenHolding = new float[] {
+        0.15f, //small size
+        0f //crouched small size
     };
 
     public override void DataLoaded(string s, string beforeEqual) { return; }
@@ -55,13 +55,13 @@ public class Player : Actor
 
                 return;
             }
-            else if (whatIsHolding.pauseActor || whatIsHolding == null) {
+            else if (whatIsHolding.pauseActor || !whatIsHolding.isBeingHeld || whatIsHolding == null) {
                 NotHoldingAnything();
                 return;
             }
             
-            Vector2 v = shiftWhenHolding[GetIndexOfBCS()];
-            whatIsHolding.transform.position = this.transform.position + new Vector3(spriteR.flipX ? v.x : -v.x, v.y);
+            Vector3 v = new Vector3(spriteR.flipX ? -0.55f : 0.55f, shiftYWhenHolding[GetIndexOfBCS()]);
+            whatIsHolding.transform.position = this.transform.position + v;
         }
     }
 
@@ -126,6 +126,8 @@ public class Player : Actor
 
             whatIsHolding = actor;
         }
+
+        base.StayingCollided(GO, actor);
     }
 
 
@@ -152,7 +154,7 @@ public class Player : Actor
 
     public bool IsOnGround() { return ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, layerMask); }
     private bool IsFalling() { return !IsOnGround(); }
-    private int GetIndexOfBCS() { return IsCrouching() ? 1 : 0; }
+    private int GetIndexOfBCS() { return (IsCrouching() && !IsJumping()) ? 1 : 0; }
 
     private float GetJumpForce() { return 9f; }
 

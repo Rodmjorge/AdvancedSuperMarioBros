@@ -14,7 +14,7 @@ public class Enemies : Actor
     public override bool CancelsOutWhenHolding() { return true; }
     public override bool DiesWhenCancelledOut() { return true; }
 
-    public virtual void HitByBlock(HitBlock hitBlock) { StartCoroutine(Disintegrated(hitBlock.gameObject, hitBlock.gameObject.transform.position.x > transform.position.x)); }
+    public virtual void HitByBlock(HitBlock hitBlock, bool hitOnLeft) { StartCoroutine(Disintegrated(hitBlock.gameObject, hitOnLeft)); }
     public virtual void HitByShell(Enemies enemy) { StartCoroutine(Disintegrated(enemy.gameObject, new System.Random().NextDouble() > 0.5f)); }
     public virtual void CancelledOut(GameObject GO, bool goLeft) { StartCoroutine(Disintegrated(GO, goLeft)); }
 
@@ -40,7 +40,7 @@ public class Enemies : Actor
 
     public override void Collided(GameObject GO, Actor actor)
     {
-        if (actor.IsActor(out Enemies enemy)) {
+        if (actor.IsActor(out Enemies enemy) && !LayerMaskInterface.IsCreatedLayer(GO.layer)) {
             if (enemy.DiesWhenCancelledOut() && this.CancelsOutWhenHolding() && this.isBeingHeld) {
                 enemy.CancelledOut(gameObject, false);
                 this.CancelledOut(GO, true);
@@ -53,16 +53,18 @@ public class Enemies : Actor
     public override void StayingCollidedBelow(GameObject GO, Actor actor)
     {
         if (actor.IsActor(out HitBlock hitBlock)) {
-            if (hitBlock.TheBloqHasIndeedBeenHit() && hitBlock.TimeOfHitting() < 0.1f)
-                HitByBlock(hitBlock);
+            if (hitBlock.TheBloqHasIndeedBeenHit() && hitBlock.TimeOfHitting() <= 0.034f)
+                HitByBlock(hitBlock, hitBlock.transform.position.x > transform.position.x);
         }
+
+        base.StayingCollidedBelow(GO, actor);
     }
 
     public override void PlayerCollidedAbove(Player player)
     {
         player.AddJump();
     }
-    public override void PlayerCollidedBelow(Player player)
+    public override void PlayerStayingCollidedBelow(Player player)
     {
         player.HitPlayer(this.gameObject, this);
     }

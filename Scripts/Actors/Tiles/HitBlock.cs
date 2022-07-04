@@ -18,8 +18,7 @@ public class HitBlock : Tiles
 
     public override void PlayerCollidedBelow(Player player)
     {
-        if (!doingAnim)
-            CollidedHitBlock();
+        if (!doingAnim) CollidedHitBlock();
     }
 
     public virtual void CollidedHitBlock()

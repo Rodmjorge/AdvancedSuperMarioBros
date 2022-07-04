@@ -7,8 +7,8 @@ public abstract class Actor : MonoBehaviour
 {
     public bool pauseActor;
 
-    protected bool isBeingHeld;
-    protected bool isBeingThrown;
+    internal bool isBeingHeld;
+    internal bool isBeingThrown;
 
     public SpriteRenderer spriteR { get { return gameObject.GetComponent<SpriteRenderer>(); } }
     public Rigidbody2D rigidBody { get { return gameObject.GetComponent<Rigidbody2D>(); } }
@@ -78,14 +78,14 @@ public abstract class Actor : MonoBehaviour
     public abstract void DataLoaded(string s, string beforeEqual);
 
 
-    public virtual Vector2 RigidVector(float? x, float? y, bool groundTouch = false, float? time = null)
+    public virtual Vector2 RigidVector(float? x, float? y, bool groundTouch = false, float? time = null, int? numberOfTimer = null, float? timeForRigid = null, int numberOfTimeForRigid = 1)
     {
         float x0 = (x == null) ? rigidBody.velocity.x : x.Value;
         float y0 = (y == null) ? rigidBody.velocity.y : y.Value;
 
         if (groundTouch) {
-            if (time != null) StartCoroutine(timer.RunAfterTime(ZeroRigidbodyWhenGroundHit(), time.Value));
-            else StartCoroutine(ZeroRigidbodyWhenGroundHit());
+            if (time != null) StartCoroutine(timer.RunAfterTime(ZeroRigidbodyWhenGroundHit(timeForRigid, numberOfTimeForRigid), time.Value, numberOfTimer));
+            else StartCoroutine(ZeroRigidbodyWhenGroundHit(timeForRigid, numberOfTimeForRigid));
         }
 
         return new Vector2(x0, y0);
@@ -125,12 +125,20 @@ public abstract class Actor : MonoBehaviour
         }
     }
 
-    public virtual IEnumerator ZeroRigidbodyWhenGroundHit()
+    public virtual IEnumerator ZeroRigidbodyWhenGroundHit(float? time = null, int numberOfTimer = 1)
     {
         while (true) {
             if (ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, LayerMaskInterface.grounded) && Resume()) {
                 rigidBody.velocity = RigidVector(0f, 0f);
-                yield break;
+
+                if (time != null) {
+                    if (timer.UntilTime(numberOfTimer)) {
+                        timer.ResetTimer(numberOfTimer);
+                        yield break;
+                    }
+                }
+                else
+                    yield break;
             }
 
             yield return new WaitForFixedUpdate();
@@ -212,6 +220,12 @@ public abstract class Actor : MonoBehaviour
         if (changeHoldingStatus) ChangeHoldingStatus(false);
         rigidBody.velocity = RigidVector(null, 0f);
 
+        if (ColliderCheck.InsideCollider(transform.position, transform, LayerMaskInterface.grounded, 0.1f))
+            transform.position = player.bcs.GetCenterPosition();
+    }
+
+    public virtual void JumpThrown(Player player)
+    {
         bool flipped = player.spriteR.flipX;
         if (player.IsCrouching()) {
             transform.position += new Vector3(flipped ? -0.4f : 0.4f, 0f);
@@ -225,11 +239,8 @@ public abstract class Actor : MonoBehaviour
 
             if (grounded) StartCoroutine(RigidbodyJumpsWhenGroundHit(true, 0.08f, RigidVector(f / 3f, 6f), RigidVector(f / 6f, 4f)));
             else StartCoroutine(RigidbodyJumpsWhenGroundHit(true, 0.08f, RigidVector(f / 2f, 7f), RigidVector(f / 5f, 5f), RigidVector(f / 7f, 3f)));
-            
-        }
 
-        if (ColliderCheck.InsideCollider(transform.position, transform, LayerMaskInterface.grounded, 0.1f))
-            transform.position = player.bcs.GetCenterPosition();
+        }
     }
 
     public virtual bool IsActor<T>(out T actor) where T : Actor
@@ -242,7 +253,7 @@ public abstract class Actor : MonoBehaviour
     public virtual bool ResumeGaming() { return !LevelLoader.LevelSettings.IsPaused(); }
 
     public virtual void SetBoxColliderBounds() { return; }
-    public virtual byte GetNumberOfTimers() { return 25; }
+    public virtual byte GetNumberOfTimers() { return 100; }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -311,9 +322,25 @@ public abstract class Actor : MonoBehaviour
     public virtual void PlayerCollidedBelow(Player player) { return; }
 
 
-    public virtual void StayingCollided(GameObject GO, Actor actor) { return; }
-    public virtual void StayingCollidedAbove(GameObject GO, Actor actor) { return; }
-    public virtual void StayingCollidedBelow(GameObject GO, Actor actor) { return; }
+    public virtual void StayingCollided(GameObject GO, Actor actor) {
+        if (Player.IsPlayer(GO, out Player player)) {
+            PlayerStayingCollided(player);
+        }
+    }
+    public virtual void StayingCollidedAbove(GameObject GO, Actor actor) {
+        if (Player.IsPlayer(GO, out Player player)) {
+            PlayerStayingCollidedAbove(player);
+        }
+    }
+    public virtual void StayingCollidedBelow(GameObject GO, Actor actor) {
+        if (Player.IsPlayer(GO, out Player player)) {
+            PlayerStayingCollidedBelow(player);
+        }
+    }
+
+    public virtual void PlayerStayingCollided(Player player) { return; }
+    public virtual void PlayerStayingCollidedAbove(Player player) { return; }
+    public virtual void PlayerStayingCollidedBelow(Player player) { return; }
 
 
     public class TimerClass
@@ -377,8 +404,23 @@ public abstract class Actor : MonoBehaviour
             }
         }
 
+        public IEnumerator ResetTimerAfterTime(float time, int numberOfTimer = 1, float resetNumber = 0f, bool runEvenIfDisabled = false)
+        {
+            while (true) {
+                if (runEvenIfDisabled || actor.Resume()) {
+                    if (UntilTime(time, numberOfTimer)) {
+                        ResetTimer(numberOfTimer, resetNumber);
+                        yield break;
+                    }
+                }
+
+                yield return new WaitForFixedUpdate();
+            }
+        }
+
         public void AddToTimer(int numberOfTimer = 1) { deltaTimes[GetIndex(numberOfTimer)] += Time.deltaTime; }
         public void ResetTimer(int numberOfTimer = 1, float resetNumber = 0f) { deltaTimes[GetIndex(numberOfTimer)] = resetNumber; }
+        public void SetTimer(float time, int numberOfTimer = 1) { deltaTimes[GetIndex(numberOfTimer)] = time; }
         public float GetTime(int numberOfTimer = 1) { return deltaTimes[GetIndex(numberOfTimer)]; }
 
         private int GetIndex(int i) { return i - 1; }
