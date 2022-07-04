@@ -6,7 +6,7 @@ public class HitBlock : Tiles
     public float sizeIncreasingTime = 0.12f;
 
     protected bool doingAnim;
-    protected float sizeTimer;
+    private float sizeTimer;
 
     public override void SetBoxColliderBounds() { bcs.SetBoxColliderBoundsNeg(0.075f); }
 

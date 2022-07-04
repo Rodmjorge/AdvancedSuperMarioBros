@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class ColliderCheck
 {
-    public static bool CollidedWithWall(WallDirection direction, BoxCollider2D boxCollider, LayerMask layerMask, RaycastThird returnRaycast = RaycastThird.All, float shiftDivided = 1f)
+    public static bool CollidedWithWall(WallDirection direction, BoxCollider2D boxCollider, LayerMask layerMask, RaycastThird returnRaycast = RaycastThird.All, float shiftDivided = 1f, bool checkIfEnabled = false)
     {
         RaycastHit2D rh1, rh2, rh3;
 
@@ -51,6 +51,9 @@ public static class ColliderCheck
         rh2 = Physics2D.Raycast(boxCollider.bounds.center + shiftRH2D, vectorDirect, extents + extentsAddition, layerMask);
         rh3 = Physics2D.Raycast(boxCollider.bounds.center - shiftRH2D, vectorDirect, extents + extentsAddition, layerMask);
 
+        if (checkIfEnabled && !boxCollider.enabled)
+            return false;
+
         switch (returnRaycast) {
             default:
             case RaycastThird.All:
@@ -68,6 +71,11 @@ public static class ColliderCheck
             case RaycastThird.Middle:
                 return rh1.collider != null;
         }
+    }
+
+    public static bool InsideCollider(Vector3 pos, Transform trans, LayerMask layerMask, float? radius = null)
+    {
+        return Physics2D.OverlapCircle(pos, (radius == null) ? trans.localScale.x / 2f : radius.Value, layerMask) != null;
     }
 
 

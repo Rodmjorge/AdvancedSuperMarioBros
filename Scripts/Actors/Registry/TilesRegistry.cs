@@ -37,6 +37,18 @@ public class TilesRegistry : ActorRegistry
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "3wide_question_block")
         });
 
+        RegisterActor("flip_block", new ActorSettings() {
+            actorClass = new FlipBlock(),
+            layer = LayerMaskInterface.blockLayer,
+
+            defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "flip_block"),
+            size = new Vector2(1f, 1f),
+            sortingLayer = SortingLayerInterface.blockLayer,
+            isKinematic = true,
+            animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "flip_block")
+
+        });
+
         base.Awake();
     }
 

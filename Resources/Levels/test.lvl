@@ -22,7 +22,11 @@ idNumber=20;id=ground;pos=7,1
 idNumber=21;id=ground;pos=7,2
 idNumber=22;id=ground;pos=7,3
 idNumber=23;id=ground;pos=7,4
-idNumber=24;id=question_block;pos=1,2
-idNumber=25;id=question_block;pos=2,2
-idNumber=26;id=question_block;pos=3,2
-idNumber=27;id=goombrat;pos=2,3
+idNumber=24;id=galoomba;pos=2,2;startRight=true
+idNumber=31;id=galoomba;pos=6,2
+idNumber=25;id=ground;pos=-10,-5
+idNumber=26;id=ground;pos=-11,-5
+idNumber=27;id=ground;pos=-12,-5
+idNumber=28;id=ground;pos=-13,-5
+idNumber=29;id=ground;pos=-14,-5
+idNumber=30;id=ground;pos=-15,-5

@@ -73,7 +73,7 @@ public abstract class ActorRegistry : MonoBehaviour
                 layer = settings.layer
             };
 
-            GO.AddComponent(settings.actorClass.GetType());
+            Actor actor = (Actor)GO.AddComponent(settings.actorClass.GetType());
             if (pos != null) GO.transform.position = pos.Value;
             if (size != null) GO.transform.localScale = size.Value;
             if (parent != null) GO.transform.parent = parent.transform;
@@ -92,6 +92,7 @@ public abstract class ActorRegistry : MonoBehaviour
             //area effector
             if (settings.useColliderMask) createSettings.create(settings.colliderMask, settings.forceTarget);
 
+            actor.settings = settings;
             return GO;
         }
 
@@ -185,6 +186,7 @@ public abstract class ActorRegistry : MonoBehaviour
         protected readonly static float rbGravityScale = 5;
         protected readonly static bool rbFreezeRot = true;
         protected readonly static bool animApplyRootMotion = false;
+        protected readonly static float forceMagnitude = 0;
 
         public SpriteRenderer create(Sprite sprite, bool[] flipped = null, Color? color = null, int order = 0, int sortingLayer = 0)
         {
@@ -247,6 +249,7 @@ public abstract class ActorRegistry : MonoBehaviour
             areaEffector.useColliderMask = true;
             areaEffector.colliderMask = colliderMask;
             areaEffector.forceTarget = effectorSelection;
+            areaEffector.forceMagnitude = forceMagnitude;
 
             create(actorSettings.size, actorSettings.offset, actorSettings.smoothing, true, actorSettings.boxColliderMaterial, true);
 

@@ -53,7 +53,7 @@ public class Goomba : WalkingEnemies
             PlayDeathAnim();
 
             isDead = true;
-            StartCoroutine(KillAnim());
+            StartCoroutine(timer.RunAfterTime(KillAnim(), 0.35f));
         }
     }
 
@@ -62,15 +62,7 @@ public class Goomba : WalkingEnemies
 
     IEnumerator KillAnim()
     {
-        while (true) {
-
-            if (Resume()) {
-                if (timer.UntilTime(0.35f)) {
-                    Destroy(gameObject);
-                }
-            }
-
-            yield return new WaitForFixedUpdate();
-        }
+        Destroy(gameObject);
+        yield break;
     }
 }

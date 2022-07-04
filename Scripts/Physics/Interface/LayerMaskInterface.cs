@@ -12,4 +12,5 @@ public interface LayerMaskInterface
     public static LayerMask justBloked { get { return 1 << blockLayer; } }
     public static LayerMask grounded { get { return justGround + justBloked; } }
     public static LayerMask enemy { get { return 1 << enemyLayer; } }
+    public static LayerMask enemyBlock { get { return justBloked + enemy; } }
 }

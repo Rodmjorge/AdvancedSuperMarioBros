@@ -11,14 +11,20 @@ public class Enemies : Actor
         targetID = LevelLoader.CreateVariable(s, beforeEqual, "targetId", targetID);
     }
 
-    public virtual IEnumerator Disintegrated(GameObject GO)
+    public override bool CancelsOutWhenHolding() { return true; }
+    public override bool DiesWhenCancelledOut() { return true; }
+
+    public virtual void HitByBlock(HitBlock hitBlock) { StartCoroutine(Disintegrated(hitBlock.gameObject, hitBlock.gameObject.transform.position.x > transform.position.x)); }
+    public virtual void HitByShell(Enemies enemy) { StartCoroutine(Disintegrated(enemy.gameObject, new System.Random().NextDouble() > 0.5f)); }
+    public virtual void CancelledOut(GameObject GO, bool goLeft) { StartCoroutine(Disintegrated(GO, goLeft)); }
+
+    public virtual IEnumerator Disintegrated(GameObject GO, bool goLeft)
     {
         pauseActor = true;
 
         BooleanBoxCollider(false);
         rigidBody.velocity = RigidVector(null, 10f);
 
-        bool goLeft = GO.transform.position.x > transform.position.x;
         while (true) {
             if (ResumeGaming()) {
                 rigidBody.velocity = RigidVector(goLeft ? -5f : 5f, null);
@@ -31,11 +37,24 @@ public class Enemies : Actor
 
     public virtual bool UseTargetID() { return true; }
 
+
+    public override void Collided(GameObject GO, Actor actor)
+    {
+        if (actor.IsActor(out Enemies enemy)) {
+            if (enemy.DiesWhenCancelledOut() && this.CancelsOutWhenHolding() && this.isBeingHeld) {
+                enemy.CancelledOut(gameObject, false);
+                this.CancelledOut(GO, true);
+            }
+        }
+
+        base.Collided(GO, actor);
+    }
+
     public override void StayingCollidedBelow(GameObject GO, Actor actor)
     {
         if (actor.IsActor(out HitBlock hitBlock)) {
             if (hitBlock.TheBloqHasIndeedBeenHit() && hitBlock.TimeOfHitting() < 0.1f)
-                StartCoroutine(Disintegrated(hitBlock.gameObject));
+                HitByBlock(hitBlock);
         }
     }
 

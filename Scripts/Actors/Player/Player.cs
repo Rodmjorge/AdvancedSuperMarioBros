@@ -13,6 +13,11 @@ public class Player : Actor
         new Vector2[] { new Vector2(0.85f, 1.7f), new Vector2(0f, -.15f) }, //big size
         new Vector2[] { new Vector2(0.85f, 0.9f), new Vector2(0f, -.05f) } //crouched big size
     };
+    public static readonly Vector3[] shiftWhenHolding = new Vector3[] {
+        new Vector3(-0.55f, 0.1f), //small size
+        new Vector3(-0.55f, 0f) //crouched small size
+    };
+
     public override void DataLoaded(string s, string beforeEqual) { return; }
 
     public LayerMask layerMask { get { return LayerMaskInterface.grounded; } }
@@ -27,6 +32,9 @@ public class Player : Actor
     private float jumpTimer;
     private bool isJumping;
 
+    private bool isHoldingSomething;
+    private Actor whatIsHolding;
+
     public override void Tick()
     {
         anim.speed = IsFalling() ? 0 : 1;
@@ -34,6 +42,27 @@ public class Player : Actor
         Walking();
         Jumping();
         Crouching();
+    }
+
+    public override void Framed()
+    {
+        anim.SetBool("holding", isHoldingSomething);
+
+        if (isHoldingSomething) {
+            if (!Input.GetKey(GetHoldingKeyCode())) {
+                whatIsHolding.Thrown(this);
+                NotHoldingAnything();
+
+                return;
+            }
+            else if (whatIsHolding.pauseActor || whatIsHolding == null) {
+                NotHoldingAnything();
+                return;
+            }
+            
+            Vector2 v = shiftWhenHolding[GetIndexOfBCS()];
+            whatIsHolding.transform.position = this.transform.position + new Vector3(spriteR.flipX ? v.x : -v.x, v.y);
+        }
     }
 
     public override void PausedTick()
@@ -81,8 +110,22 @@ public class Player : Actor
     {
         anim.SetBool("crouching", IsCrouching());
 
-        int index = IsCrouching() ? 1 : 0;
+        int index = GetIndexOfBCS();
         bcs.SetBoxCollider(boxcolliderSizes[index][0], boxcolliderSizes[index][1]);
+    }
+
+    public override void Collided(GameObject GO, Actor actor) { StayingCollided(GO, actor); }
+    public override void StayingCollided(GameObject GO, Actor actor)
+    {
+        if (actor.IsHoldable() && Input.GetKey(GetHoldingKeyCode())) {
+
+            actor.StartedHolding(this);
+            actor.ChangeHoldingStatus(true);
+
+            isHoldingSomething = true;
+
+            whatIsHolding = actor;
+        }
     }
 
 
@@ -99,15 +142,22 @@ public class Player : Actor
 
     private bool IsWalking() { return isWalking; }
     private bool IsMoving() { return rigidBody.velocity.x < -0.25f || rigidBody.velocity.x > 0.25f; }
-    private bool IsJumping() { return isJumping; }
-    private bool IsCrouching() { return isCrouching; }
+    public bool IsJumping() { return isJumping; }
+    public bool IsCrouching() { return isCrouching; }
+    public void NotHoldingAnything()
+    {
+        isHoldingSomething = false;
+        whatIsHolding = null;
+    }
 
-    private bool IsOnGround() { return ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, layerMask); }
+    public bool IsOnGround() { return ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, layerMask); }
     private bool IsFalling() { return !IsOnGround(); }
+    private int GetIndexOfBCS() { return IsCrouching() ? 1 : 0; }
 
     private float GetJumpForce() { return 9f; }
 
 
+    public static KeyCode GetHoldingKeyCode() { return KeyCode.UpArrow; }
     public static bool IsPlayer(GameObject GO) { return GO.GetComponent<Player>() != null; }
 
     public static bool IsPlayer(GameObject GO, out Player player) {

@@ -34,13 +34,11 @@ public class ContainerBlock : HitBlock
 
     public override void FinishedAnim()
     {
-        anim.SetBool(UsedBlockAnimString(), getUsed);
-
-        string container = (containerObject == null) ? "null" : containerObject;
+        containerObject = (containerObject == null) ? GetDefaultContainer() : containerObject;
         const float time = 0.15f;
 
-        if (container != "null") {
-            Actor actor = LevelLoader.CheckLineInBrackets(container, gameObject, true, null, ActorRegistry.ActorSettings.CreatedActorTypes.EnableAfterTime, time);
+        if (containerObject != "null") {
+            Actor actor = LevelLoader.CheckLineInBrackets(containerObject, gameObject, true, null, ActorRegistry.ActorSettings.CreatedActorTypes.EnableAfterTime, time);
 
             actor.transform.position = new Vector3(actor.transform.position.x, bcs.GetExtentsYPos() - 0.5f, 0f);
             actor.rigidBody.velocity = RigidVector(null, 12f);
@@ -48,7 +46,13 @@ public class ContainerBlock : HitBlock
             if (actor.gameObject.transform.localScale.x > 1f || actor.gameObject.transform.localScale.y > 1f)
                 StartCoroutine(SizeIncreaseOfActor(actor.gameObject.transform, time, 0.05f));
         }
+        else
+            WhenContainerIsNull();
+
+        anim.SetBool(UsedBlockAnimString(), UsedBoolean());
     }
+
+    public virtual bool UsedBoolean() { return getUsed; }
 
     private IEnumerator SizeIncreaseOfActor(Transform transF, float untilTime, float timeTakeToIncrease)
     {
@@ -90,5 +94,8 @@ public class ContainerBlock : HitBlock
         }
     }
 
+    public virtual void WhenContainerIsNull() { return; }
+
     public virtual string UsedBlockAnimString() { return "used"; }
+    public virtual string GetDefaultContainer() { return "null"; }
 }
