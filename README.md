@@ -1,3 +1,3 @@
 # AdvancedSuperMarioBros
-Advanced Super Mario Bros is a game made in the Unity game engine, and it's basically Super Mario Bros. but with much, much more stuff.
-And that's all you need to know really... 
+Advanced Super Mario Bros. is a Super Mario Bros. type fan-game made in the Unity game engine. It has everything the original Super Mario Bros. also has, and adds way, way more. 
+Its physics and graphics correlate more with the Super Mario Bros. style from Super Mario Maker 2.
