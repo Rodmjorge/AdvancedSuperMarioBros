@@ -15,6 +15,7 @@ public interface LayerMaskInterface
     public static LayerMask grounded { get { return justGround + justBloked; } }
     public static LayerMask enemy { get { return 1 << enemyLayer; } }
     public static LayerMask enemyBlock { get { return justBloked + enemy; } }
+    public static LayerMask tBloked { get { return 1 << tBlockLayer; } }
 
     public static bool IsCreatedLayer(int layer) { return LayerMask.LayerToName(layer).StartsWith("Created"); }
 }

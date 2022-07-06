@@ -12,7 +12,9 @@ public class ContainerBlock : HitBlock
     private ushort usedTimes;
     private bool getUsed;
 
-    public override Particle GetParticle() { return Particling(Particle.ParticleType.QuestionBlock); }
+    public override Particle GetParticle() { return Particling(isUsedBlock ? Particle.ParticleType.UsedBlock : GetBlockParticleType()); }
+    public virtual Particle.ParticleType GetBlockParticleType() { return Particle.ParticleType.QuestionBlock; }
+
     public override void DataLoaded(string s, string beforeEqual)
     {
         containerObject = LevelLoader.CreateVariable(s, beforeEqual, "containing", containerObject);
@@ -46,6 +48,8 @@ public class ContainerBlock : HitBlock
 
             if (actor.gameObject.transform.localScale.x > 1f || actor.gameObject.transform.localScale.y > 1f)
                 StartCoroutine(SizeIncreaseOfActor(actor.gameObject.transform, time, 0.05f));
+
+            AudioManager.PlayAudio("container_block");
         }
         else
             WhenContainerIsNull();

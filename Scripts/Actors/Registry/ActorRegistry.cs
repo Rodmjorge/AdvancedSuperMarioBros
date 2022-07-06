@@ -7,7 +7,7 @@ public abstract class ActorRegistry : MonoBehaviour
     internal static Dictionary<string, ActorSettings> actors = new Dictionary<string, ActorSettings>();
     private static ActorRegistry actorBase;
 
-    internal static bool isPaused { get { return LevelLoader.LevelSettings.IsPaused(); } }
+    internal static bool isPaused { get { return LevelManager.IsPaused(); } }
 
 
     internal virtual void Awake() { actorBase = this.gameObject.GetComponent<ActorRegistry>(); }
@@ -131,11 +131,6 @@ public abstract class ActorRegistry : MonoBehaviour
 
             yield return new WaitForFixedUpdate();
         }
-    }
-
-    public static void StatusOfScene(bool pause, bool resetLevel = false) { 
-        LevelLoader.LevelSettings.pause = pause;
-        if (resetLevel) LevelLoader.ResetLevel();
     }
 
 

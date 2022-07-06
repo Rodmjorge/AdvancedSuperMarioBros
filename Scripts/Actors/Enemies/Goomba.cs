@@ -47,9 +47,11 @@ public class Goomba : WalkingEnemies
                     walkEnemy.startsGoingRight = true;
             }
 
+            PlayExplosionSound();
             gameObject.SetActive(false);
         }
         else {
+            PlaySteppedSound();
             PlayDeathAnim();
 
             isDead = true;

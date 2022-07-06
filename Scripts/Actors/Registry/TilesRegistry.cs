@@ -64,8 +64,7 @@ public class TilesRegistry : ActorRegistry
             layer = LayerMaskInterface.tBlockLayer,
 
             defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "coin_1"),
-            size = new Vector2(0.7f, 0.8f),
-            isTrigger = true,
+            size = new Vector2(0.7f, 0.98f),
             sortingLayer = SortingLayerInterface.blockLayer,
             isKinematic = true,
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "coin")

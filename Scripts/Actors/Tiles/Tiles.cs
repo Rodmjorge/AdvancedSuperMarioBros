@@ -46,16 +46,22 @@ public abstract class Tiles : Actor
                 spriteR.sprite = b ? settings.defaultSprite : null;
                 pauseActor = !b;
 
-                if (!b && appearParticles) {
-                    if (ShowParticleWhenDestroyed()) GetParticle();
-                }
+                if (!b && appearParticles) 
+                    SpawnThemParticls();
             }
         }
     }
 
+    protected virtual void SpawnThemParticls()
+    {
+        if (PlayDestroySound()) AudioManager.PlayAudio("breaking_block");
+        if (ShowParticleWhenDestroyed()) GetParticle();
+    }
 
-    public virtual Particle Particling(Particle.ParticleType type, int number = 4) { return Particle.CreateParticle(transform.position, type, transform.localScale, number); }
+
+    public virtual Particle Particling(Particle.ParticleType type, int number = 4) { return Particle.CreateParticle(transform.position, type, transform.localScale, boxCollider.size, number); }
     public abstract Particle GetParticle();
+    public virtual bool PlayDestroySound() { return true; }
 
     public virtual bool ShowParticleWhenDestroyed() { return true; }
     public virtual bool IsDestructable() { return true; }

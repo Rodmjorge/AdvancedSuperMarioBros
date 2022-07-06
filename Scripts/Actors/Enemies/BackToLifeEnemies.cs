@@ -132,6 +132,8 @@ public class BackToLifeEnemies : WalkingEnemies
     public virtual void KillEnemy()
     {
         rigidBody.velocity = RigidVector(0f, null);
+        PlaySteppedSound();
+
         StartCoroutine(ShakingAnimAndLife());
     }
 

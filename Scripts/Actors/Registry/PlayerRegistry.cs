@@ -18,16 +18,10 @@ public class PlayerRegistry : ActorRegistry
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "player"),
 
             useColliderMask = true,
-            colliderMask = LayerMaskInterface.enemy
+            colliderMask = LayerMaskInterface.enemy + LayerMaskInterface.tBloked
         });
 
         base.Awake();
-    }
-
-    private void Start()
-    {
-        Application.targetFrameRate = 75;
-        LevelLoader.LoadLevel("test");
     }
 
     internal override string GetSpritePath() { return Actor.SpritePath("Player"); }

@@ -54,6 +54,7 @@ public class Galoomba : BackToLifeEnemies
             rigidBody.velocity = RigidVector((player.transform.position.x > transform.position.x) ? -kickingVelocity.x : kickingVelocity.x, kickingVelocity.y, true, 0.05f);
             StartCoroutine(timer.ResetTimerAfterTime(0.5f, 20));
 
+            PlayKickedSound();
             ResetLifeTimer();
             kicked = true;
         }

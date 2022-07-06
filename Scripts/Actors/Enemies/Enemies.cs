@@ -33,6 +33,7 @@ public class Enemies : Actor
         rigidBody.velocity = RigidVector(null, 10f);
 
         SetTargetBoolean(true);
+        PlayKickedSound();
 
         while (true) {
             if (ResumeGaming()) {
@@ -61,10 +62,8 @@ public class Enemies : Actor
 
     public override void StayingCollidedBelow(GameObject GO, Actor actor)
     {
-        if (actor.IsActor(out HitBlock hitBlock)) {
-            if (hitBlock.TheBloqHasIndeedBeenHit() && hitBlock.TimeOfHitting() <= 0.034f)
-                HitByBlock(hitBlock, hitBlock.transform.position.x > transform.position.x);
-        }
+        if (HitByBlockBelow(actor, out HitBlock hitBlock))
+            HitByBlock(hitBlock, hitBlock.transform.position.x > transform.position.x);
 
         base.StayingCollidedBelow(GO, actor);
     }
@@ -77,4 +76,8 @@ public class Enemies : Actor
     {
         player.HitPlayer(this.gameObject, this);
     }
+
+    protected virtual void PlayKickedSound() { AudioManager.PlayAudio("kick_enemy"); }
+    protected virtual void PlaySteppedSound() { AudioManager.PlayAudio("step_enemy"); }
+    protected virtual void PlayExplosionSound() { AudioManager.PlayAudio("explosion_enemy"); }
 }

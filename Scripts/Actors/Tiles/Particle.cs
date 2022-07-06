@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
 public class Particle : Tiles
@@ -15,19 +16,24 @@ public class Particle : Tiles
         }
     }
 
-    public static Particle CreateParticle(Vector3 pos, ParticleType type, Vector3? size = null, int number = 4)
+    public static Particle CreateParticle(Vector3 pos, ParticleType type, Vector3 size, Vector3 boxcolliderSize, int number = 4)
     {
         Particle particle = null;
 
-        int j = 1;
+        int l = 1;
         for (int i = 0; i < number; i++) {
-            j += (i % 2 == 0 && i != 0) ? 1 : 0;
-            particle = ActorRegistry.SetActor("particle", pos, size).GetComponent<Particle>();
+            l += (i % 2 == 0 && i != 0) ? 1 : 0;
+            
+            for (int j = 0; j < (int)Math.Floor(boxcolliderSize.x); j++) {
+                for (int k = 0; k < (int)Math.Floor(boxcolliderSize.y); k++) {
+                    particle = ActorRegistry.SetActor("particle", new Vector3(pos.x - ((boxcolliderSize.x - 1f) / 2f) * size.x + j * size.x, pos.y - ((boxcolliderSize.y - 1f) / 2f) * size.y + k * size.y), size).GetComponent<Particle>();
 
-            particle.rigidBody.velocity = particle.RigidVector((i % 2 == 0) ? -4f : 4f, 7f * j);
-            particle.anim.Play(TypeToString(type) + "_particle");
+                    particle.rigidBody.velocity = particle.RigidVector((i % 2 == 0) ? -4f : 4f, 7f * l);
+                    particle.anim.Play(TypeToString(type) + "_particle");
 
-            particle.StartCoroutine(particle.Rotate(i % 2 != 0));
+                    particle.StartCoroutine(particle.Rotate(i % 2 != 0));
+                }
+            }
         }
 
         return particle;
@@ -52,6 +58,9 @@ public class Particle : Tiles
 
             case ParticleType.ThreeUpMoonBlock:
                 return "3up_moon_block";
+
+            case ParticleType.UsedBlock:
+                return "used_block";
         }
     }
 
@@ -62,6 +71,7 @@ public class Particle : Tiles
         FlipBlock,
         FrozenBrickBlock,
         IceBlock,
-        ThreeUpMoonBlock
+        ThreeUpMoonBlock,
+        UsedBlock
     }
 }

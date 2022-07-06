@@ -69,7 +69,7 @@ public class Player : Actor
     {
         if (Input.GetKey(KeyCode.R)) {
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-            ActorRegistry.StatusOfScene(false, true);
+            LevelManager.StatusOfScene(false, true);
         }
     }
 
@@ -93,7 +93,9 @@ public class Player : Actor
         anim.SetBool("jumping", IsJumping());
 
         if (Input.GetKey(KeyCode.Space) && jumpTimer > 0f) {
-            jumpTimer -= (!ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ceiling, boxCollider, layerMask)) ? Time.fixedDeltaTime : jumpTimer;
+            if (!isJumping) AudioManager.PlayAudio(GetJumpSound());
+
+            jumpTimer -= (!CeilingCollider()) ? Time.fixedDeltaTime : jumpTimer;
 
             rigidBody.velocity = RigidVector(null, GetJumpForce());
             isJumping = true;
@@ -139,13 +141,21 @@ public class Player : Actor
     internal void HitPlayer(GameObject GO, Actor actor)
     {
         anim.SetBool("death", true);
-        ActorRegistry.StatusOfScene(true);
+        LevelManager.StatusOfScene(true);
     }
 
     private bool IsWalking() { return isWalking; }
     private bool IsMoving() { return rigidBody.velocity.x < -0.25f || rigidBody.velocity.x > 0.25f; }
     public bool IsJumping() { return isJumping; }
     public bool IsCrouching() { return isCrouching; }
+    public bool CeilingCollider()
+    {
+        bool b = ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ceiling, boxCollider, layerMask);
+        if (b) AudioManager.PlayAudio("hit_block");
+
+        return b;
+    }
+
     public void NotHoldingAnything()
     {
         isHoldingSomething = false;
@@ -157,6 +167,7 @@ public class Player : Actor
     private int GetIndexOfBCS() { return (IsCrouching() && !IsJumping()) ? 1 : 0; }
 
     private float GetJumpForce() { return 9f; }
+    private string GetJumpSound() { return "small_mario_jump"; }
 
 
     public static KeyCode GetHoldingKeyCode() { return KeyCode.UpArrow; }

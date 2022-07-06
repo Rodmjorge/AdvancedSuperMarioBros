@@ -270,6 +270,8 @@ public abstract class Actor : MonoBehaviour
 
     public virtual void JumpThrown(Player player)
     {
+        AudioManager.PlayAudio("kick_enemy");
+
         bool flipped = player.spriteR.flipX;
         if (player.IsCrouching()) {
             transform.position += new Vector3(flipped ? -0.4f : 0.4f, 0f);
@@ -294,7 +296,7 @@ public abstract class Actor : MonoBehaviour
     }
 
     public virtual bool Resume() { return ResumeGaming() && !pauseActor; }
-    public virtual bool ResumeGaming() { return !LevelLoader.LevelSettings.IsPaused(); }
+    public virtual bool ResumeGaming() { return !LevelManager.IsPaused(); }
 
     public virtual void SetBoxColliderBounds() { return; }
     public virtual byte GetNumberOfTimers() { return 100; }
@@ -358,6 +360,18 @@ public abstract class Actor : MonoBehaviour
     public virtual void CollidedBelow(GameObject GO, Actor actor) {
         if (Player.IsPlayer(GO, out Player player)) {
             PlayerCollidedBelow(player);
+        }
+    }
+
+    public virtual bool HitByBlockBelow(Actor actor, out HitBlock hitBlock)
+    {
+        if (actor.IsActor(out HitBlock hitBlock0)) {
+            hitBlock = hitBlock0;
+            return (hitBlock0.TheBloqHasIndeedBeenHit() && hitBlock0.TimeOfHitting() <= 0.034f);
+        }
+        else {
+            hitBlock = null;
+            return false;
         }
     }
 

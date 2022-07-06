@@ -175,8 +175,8 @@ public static class LevelLoader
 
     public static class LevelSettings
     {
-        public static bool pause;
         private static string theme;
+        private static ushort timer = 300;
 
         public static bool[] triggers = new bool[ushort.MaxValue];
 
@@ -190,11 +190,12 @@ public static class LevelLoader
                         SetTrigger(us, true);
 
                     break;
+
+                case "time":
+                    timer = CreateVariable<ushort>(equalBreak[1]);
+                    break;
             }
         }
-
-        public static bool IsPaused() { return pause; }
-
 
         public static bool GetTrigger(ushort triggerID) { return triggers[triggerID - 1]; }
         public static void SetTrigger(ushort triggerID, bool b, bool setNoMatterWhat = false)
@@ -205,6 +206,8 @@ public static class LevelLoader
             if (actor.Where(x => b ? x.targetIDBool : !x.targetIDBool).ToArray().Length == actor.Length || setNoMatterWhat)
                 triggers[i] = b;
         }
+
+        internal static ushort GetTimer() { return timer; }
     }
 
     public enum TransformPos
