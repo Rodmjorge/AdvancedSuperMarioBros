@@ -7,6 +7,9 @@ public abstract class Actor : MonoBehaviour
 {
     public bool pauseActor;
 
+    internal ushort targetIDSet;
+    internal bool targetIDBool;
+
     internal bool isBeingHeld;
     internal bool isBeingThrown;
 
@@ -24,15 +27,13 @@ public abstract class Actor : MonoBehaviour
     protected TimerClass timer;
     internal ActorRegistry.ActorSettings settings;
 
-    private bool isAlreadyKinematic;
     public virtual void Start() 
     {
         bcs = new BoxColliderSettings(this, gameObject);
         timer = new TimerClass(GetNumberOfTimers(), this);
 
-        isAlreadyKinematic = rigidBody.isKinematic;
-
         SetBoxColliderBounds();
+        UpdateComponents();
     }
 
     private void FixedUpdate() 
@@ -41,23 +42,30 @@ public abstract class Actor : MonoBehaviour
 
         if (Resume()) { 
             Tick();
+
             if (isBeingHeld) IsBeingHeldTick();
+
+            if (IsInsideBloq() && !LayerMaskInterface.IsCreatedLayer(gameObject.layer) && boxCollider.enabled && !isBeingHeld) 
+                InsideCollider();
         }
         else { PausedTick(); }
     }
 
     private bool changeUpdate;
+    private bool[] updateComponents = new bool[3]; //1 - boxcollider; 2 - rigidbody; 3 - animator
     private void Update()
     {
         if (Resume()) {
             Framed();
 
             if (changeUpdate) {
-                BooleanBoxAndRigid(true);
-                BooleanAnim(true);
+                BooleanBoxAndRigid(true, false, false);
+                BooleanAnim(true, false);
 
                 changeUpdate = false;
             }
+
+            UpdateComponents();
         }
 
         else {
@@ -78,6 +86,26 @@ public abstract class Actor : MonoBehaviour
     public abstract void DataLoaded(string s, string beforeEqual);
 
 
+    public virtual void SetTargetBoolean(bool b, float time = 0f)
+    {
+        if (IsValidTrigger(targetIDSet)) {
+            targetIDBool = b;
+            ActorRegistry.GetActorBase().StartCoroutine(timer.RunAfterTime(SetTrigger(b), time, null, false, true));
+        }
+    }
+
+    protected ushort SetTargetID(string s, string beforeEqual) { return LevelLoader.CreateVariable(s, beforeEqual, "targetId", targetIDSet); }
+    protected ushort SetTriggeredID(string s, string beforeEqual, ushort triggeredID) { return LevelLoader.CreateVariable(s, beforeEqual, "triggeredId", triggeredID); }
+
+
+    private IEnumerator SetTrigger(bool activate)
+    {
+        LevelLoader.LevelSettings.SetTrigger(targetIDSet, activate);
+        yield break;
+    }
+    public virtual bool? IsTargetActive(ushort triggeredID) { return (triggeredID <= 0) ? null : LevelLoader.LevelSettings.GetTrigger(triggeredID); }
+    public virtual bool IsValidTrigger(ushort triggeredID) { return triggeredID > 0; }
+
     public virtual Vector2 RigidVector(float? x, float? y, bool groundTouch = false, float? time = null, int? numberOfTimer = null, float? timeForRigid = null, int numberOfTimeForRigid = 1)
     {
         float x0 = (x == null) ? rigidBody.velocity.x : x.Value;
@@ -90,22 +118,36 @@ public abstract class Actor : MonoBehaviour
 
         return new Vector2(x0, y0);
     }
-
-    public virtual void BooleanBoxCollider(bool b)
+    public virtual void UpdateComponents()
     {
-        boxCollider.enabled = b;
-        if (boxColliderArray.Length > 1) boxColliderArray[1].enabled = b;
+        updateComponents[0] = boxCollider.enabled;
+        updateComponents[1] = rigidBody.isKinematic;
+        updateComponents[2] = anim.enabled;
     }
-    public virtual void BooleanBoxAndRigid(bool b, bool zeroRigidbody = false)
-    {
-        BooleanBoxCollider(b);
 
-        rigidBody.isKinematic = isAlreadyKinematic ? true : !b;
+    public virtual bool IsInsideBloq()
+    {
+        return ColliderCheck.InsideCollider(transform.position, transform, LayerMaskInterface.grounded, 0.1f * transform.localScale.x * transform.localScale.y);
+    }
+    public virtual void InsideCollider() { return; }
+
+    public virtual void BooleanBoxCollider(bool b, bool ignoreComponents = true)
+    {
+        bool bb = ignoreComponents ? b : updateComponents[0];
+
+        boxCollider.enabled = bb;
+        if (boxColliderArray.Length > 1) boxColliderArray[1].enabled = bb;
+    }
+    public virtual void BooleanBoxAndRigid(bool b, bool zeroRigidbody = false, bool ignoreComponents = true)
+    {
+        BooleanBoxCollider(b, ignoreComponents);
+
+        rigidBody.isKinematic = ignoreComponents ? !b : updateComponents[1];
         rigidBody.velocity = zeroRigidbody ? RigidVector(0, 0) : rigidBody.velocity;
     }
-    public virtual void BooleanAnim(bool b)
+    public virtual void BooleanAnim(bool b, bool ignoreComponents = true)
     {
-        anim.enabled = b;
+        anim.enabled = ignoreComponents ? b : updateComponents[2];
     }
 
     public virtual IEnumerator EnableBoxcollider(float time)
@@ -215,12 +257,14 @@ public abstract class Actor : MonoBehaviour
 
     public virtual void StartedHolding(Player player) { return; }
 
-    public virtual void Thrown(Player player, bool changeHoldingStatus = true) {
-
+    public virtual void Thrown(Player player, bool changeHoldingStatus = true)
+    {
         if (changeHoldingStatus) ChangeHoldingStatus(false);
         rigidBody.velocity = RigidVector(null, 0f);
 
-        if (ColliderCheck.InsideCollider(transform.position, transform, LayerMaskInterface.grounded, 0.1f))
+        JumpThrown(player);
+
+        if (IsInsideBloq())
             transform.position = player.bcs.GetCenterPosition();
     }
 
@@ -384,14 +428,14 @@ public abstract class Actor : MonoBehaviour
             }
         }
 
-        public IEnumerator RunAfterTime(IEnumerator i, float time, int? numberOfTimer = null, bool resetTimerAfter = false, bool runEvenIfDisabled = false)
+        public IEnumerator RunAfterTime(IEnumerator i, float time, int? numberOfTimer = null, bool resetTimerAfter = false, bool runEvenIfDisabled = false, bool runEvenIfGamingDisabled = false)
         {
             TimerClass timerT = new TimerClass(1);
 
             while (true) {
-                if (runEvenIfDisabled || actor.Resume()) {
+                if (runEvenIfDisabled ? (runEvenIfGamingDisabled || actor.ResumeGaming()) : actor.Resume()) {
                     if ((numberOfTimer == null) ? timerT.UntilTime(time) : UntilTime(time, numberOfTimer.Value)) {
-                        actor.StartCoroutine(i);
+                        ActorRegistry.GetActorBase().StartCoroutine(i);
 
                         if (resetTimerAfter && numberOfTimer != null)
                             ResetTimer(numberOfTimer.Value);

@@ -5,12 +5,12 @@ using UnityEngine;
 public abstract class ActorRegistry : MonoBehaviour
 {
     internal static Dictionary<string, ActorSettings> actors = new Dictionary<string, ActorSettings>();
-    internal static GameObject actorBase;
+    private static ActorRegistry actorBase;
 
     internal static bool isPaused { get { return LevelLoader.LevelSettings.IsPaused(); } }
 
 
-    internal virtual void Awake() { actorBase = this.gameObject; }
+    internal virtual void Awake() { actorBase = this.gameObject.GetComponent<ActorRegistry>(); }
     internal abstract string GetSpritePath();
     internal abstract string GetAnimatorPath();
 
@@ -19,6 +19,8 @@ public abstract class ActorRegistry : MonoBehaviour
         if (!actors.ContainsKey(internalName)) actors.Add(internalName, settings); 
     }
 
+
+    public static ActorRegistry GetActorBase() { return actorBase; }
 
     public static Actor GetActor(string internalName) 
     { 
@@ -151,7 +153,7 @@ public abstract class ActorRegistry : MonoBehaviour
         public int sortingLayer;
 
         [Header("Box Collider")]
-        public Vector2 size;
+        public Vector2 size = new Vector2(0.1f, 0.1f);
         public Vector2 offset;
         public float smoothing = defaultSmoothing;
         public PhysicsMaterial2D boxColliderMaterial = defaultPhysicMaterial;

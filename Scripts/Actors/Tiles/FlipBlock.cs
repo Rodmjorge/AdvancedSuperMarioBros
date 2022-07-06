@@ -6,6 +6,7 @@ public class FlipBlock : ContainerBlock
     private bool isFlipping { get { return anim.GetBool("flipping"); } }
     public float flippingDuration = 5f;
 
+    public override Particle GetParticle() { return Particling(Particle.ParticleType.FlipBlock); }
     public override void DataLoaded(string s, string beforeEqual)
     {
         flippingDuration = LevelLoader.CreateVariable(s, beforeEqual, "flippingDuration", flippingDuration);

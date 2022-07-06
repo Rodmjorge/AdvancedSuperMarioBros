@@ -8,6 +8,7 @@ public class HitBlock : Tiles
     protected bool doingAnim;
     private float sizeTimer;
 
+    public override Particle GetParticle() { return null; }
     public override void SetBoxColliderBounds() { bcs.SetBoxColliderBoundsNeg(0.075f); }
 
     public override void DataLoaded(string s, string beforeEqual)

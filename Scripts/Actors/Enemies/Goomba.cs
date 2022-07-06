@@ -47,7 +47,7 @@ public class Goomba : WalkingEnemies
                     walkEnemy.startsGoingRight = true;
             }
 
-            Destroy(gameObject);
+            gameObject.SetActive(false);
         }
         else {
             PlayDeathAnim();
@@ -62,7 +62,9 @@ public class Goomba : WalkingEnemies
 
     IEnumerator KillAnim()
     {
-        Destroy(gameObject);
+        SetTargetBoolean(true);
+
+        gameObject.SetActive(false);
         yield break;
     }
 }

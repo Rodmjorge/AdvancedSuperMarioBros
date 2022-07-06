@@ -4,6 +4,8 @@ using UnityEngine;
 public class Galoomba : BackToLifeEnemies
 {
     private bool dead;
+    private bool kicked;
+
     public Vector2 kickingVelocity = new Vector2(7f, 7f);
 
     public override void SetBoxColliderBounds() { bcs.SetBoxColliderBoundsPos(0.25f); }
@@ -13,12 +15,18 @@ public class Galoomba : BackToLifeEnemies
         base.DataLoaded(s, beforeEqual);
     }
 
+    public override void Framed()
+    {
+        if (kicked && rigidBody.velocity == Vector2.zero)
+            kicked = false;
+    }
+
     public override bool IsHoldable() { return transform.localScale.x <= 1f && transform.localScale.y <= 1f && DeadMaybe(); }
     public override void ChangeHoldingStatus(bool b) { isBeingHeld = b; }
 
     public override void Collided(GameObject GO, Actor actor)
     {
-        if (actor.IsActor(out Enemies enemy) && isBeingThrown && !LayerMaskInterface.IsCreatedLayer(GO.layer)) 
+        if (actor.IsActor(out Enemies enemy) && (isBeingThrown || kicked) && !LayerMaskInterface.IsCreatedLayer(GO.layer)) 
             enemy.HitByShell(this);
 
         base.Collided(GO, actor);
@@ -38,9 +46,7 @@ public class Galoomba : BackToLifeEnemies
     public override void Thrown(Player player, bool changeHoldingStatus = true)
     {
         base.Thrown(player, changeHoldingStatus);
-
         ResetLifeTimer();
-        JumpThrown(player);
     }
     public override void PlayerStayingCollided(Player player)
     {
@@ -49,6 +55,7 @@ public class Galoomba : BackToLifeEnemies
             StartCoroutine(timer.ResetTimerAfterTime(0.5f, 20));
 
             ResetLifeTimer();
+            kicked = true;
         }
     }
 

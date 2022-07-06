@@ -121,6 +121,8 @@ public static class LevelLoader
         return false;
     }
 
+    public static bool RandomBoolean() { return new System.Random().NextDouble() > 0.5f; }
+
     public static T CreateVariable<T>(string s, string beforeEqual = "", string whatItHasToBe = "", T t = default, float integerValue = 0f)
     {
         if (IsNotEqual(beforeEqual, whatItHasToBe)) return t;
@@ -134,8 +136,8 @@ public static class LevelLoader
                 value = new Vector2(v3.x, v3.y);
             }
             else if (type == typeof(Vector3)) {
-                string[] sArr = s.Split(',').Select(x => x.Replace('.', ',')).ToArray();
-                value = new Vector3(float.Parse(sArr[0]), float.Parse(sArr[1]), (sArr.Length > 2) ? float.Parse(sArr[2]) : integerValue);
+                float[] f = CreateArrayOfDot(s).Select(y => CreateVariable<float>(y)).ToArray();
+                value = new Vector3(f[0], f[1], (f.Length > 2) ? f[2] : integerValue);
             }
 
             else if (type == typeof(float))
@@ -147,6 +149,9 @@ public static class LevelLoader
             else if (type == typeof(ushort))
                 value = (ushort)CreateVariable<int>(s);
 
+            else if (type == typeof(ushort[]))
+                value = CreateArrayOf(s).Select(x => CreateVariable<ushort>(x)).ToArray();
+
             else if (type == typeof(bool))
                 value = bool.Parse(s.ToLower());
         }
@@ -157,6 +162,15 @@ public static class LevelLoader
         return (T)value;
     }
 
+    private static string[] CreateArrayOf(string s, char seperator = ',')
+    {
+        return s.Split(seperator);
+    }
+    private static string[] CreateArrayOfDot(string s, char seperator = ',')
+    {
+        return CreateArrayOf(s, seperator).Select(x => x.Replace('.', ',')).ToArray();
+    }
+
 
 
     public static class LevelSettings
@@ -164,14 +178,33 @@ public static class LevelLoader
         public static bool pause;
         private static string theme;
 
+        public static bool[] triggers = new bool[ushort.MaxValue];
+
         internal static void LoadSettings(string[] equalBreak, int lineNumber)
         {
             switch(equalBreak[0]) {
+                case "triggers": //triggers that activate upon starting the level
+                    ushort[] usArr = equalBreak[1].Split(',').Select(x => CreateVariable<ushort>(x)).ToArray();
 
+                    foreach (ushort us in usArr)
+                        SetTrigger(us, true);
+
+                    break;
             }
         }
 
         public static bool IsPaused() { return pause; }
+
+
+        public static bool GetTrigger(ushort triggerID) { return triggers[triggerID - 1]; }
+        public static void SetTrigger(ushort triggerID, bool b, bool setNoMatterWhat = false)
+        {
+            int i = triggerID - 1;
+            Actor[] actor = GameObject.FindObjectsOfType<Actor>().Where(x => x.targetIDSet == triggerID).ToArray();
+
+            if (actor.Where(x => b ? x.targetIDBool : !x.targetIDBool).ToArray().Length == actor.Length || setNoMatterWhat)
+                triggers[i] = b;
+        }
     }
 
     public enum TransformPos

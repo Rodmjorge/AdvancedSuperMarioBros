@@ -12,6 +12,7 @@ public class ContainerBlock : HitBlock
     private ushort usedTimes;
     private bool getUsed;
 
+    public override Particle GetParticle() { return Particling(Particle.ParticleType.QuestionBlock); }
     public override void DataLoaded(string s, string beforeEqual)
     {
         containerObject = LevelLoader.CreateVariable(s, beforeEqual, "containing", containerObject);

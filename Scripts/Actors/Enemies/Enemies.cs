@@ -3,20 +3,27 @@ using UnityEngine;
 
 public class Enemies : Actor
 {
-    public ushort targetID;
+    public float triggerSetTime = 0.5f;
     public LayerMask layerMask { get { return LayerMaskInterface.grounded + LayerMaskInterface.enemy; } }
 
     public override void DataLoaded(string s, string beforeEqual) 
     {
-        targetID = LevelLoader.CreateVariable(s, beforeEqual, "targetId", targetID);
+        targetIDSet = SetTargetID(s, beforeEqual);
+        triggerSetTime = LevelLoader.CreateVariable(s, beforeEqual, "triggerSetTime", triggerSetTime);
+    }
+
+    public override void SetTargetBoolean(bool b, float time = 0)
+    {
+        base.SetTargetBoolean(b, triggerSetTime);
     }
 
     public override bool CancelsOutWhenHolding() { return true; }
     public override bool DiesWhenCancelledOut() { return true; }
 
     public virtual void HitByBlock(HitBlock hitBlock, bool hitOnLeft) { StartCoroutine(Disintegrated(hitBlock.gameObject, hitOnLeft)); }
-    public virtual void HitByShell(Enemies enemy) { StartCoroutine(Disintegrated(enemy.gameObject, new System.Random().NextDouble() > 0.5f)); }
+    public virtual void HitByShell(Enemies enemy) { StartCoroutine(Disintegrated(enemy.gameObject, LevelLoader.RandomBoolean())); }
     public virtual void CancelledOut(GameObject GO, bool goLeft) { StartCoroutine(Disintegrated(GO, goLeft)); }
+    public override void InsideCollider() { StartCoroutine(Disintegrated(null, LevelLoader.RandomBoolean())); }
 
     public virtual IEnumerator Disintegrated(GameObject GO, bool goLeft)
     {
@@ -24,6 +31,8 @@ public class Enemies : Actor
 
         BooleanBoxCollider(false);
         rigidBody.velocity = RigidVector(null, 10f);
+
+        SetTargetBoolean(true);
 
         while (true) {
             if (ResumeGaming()) {
