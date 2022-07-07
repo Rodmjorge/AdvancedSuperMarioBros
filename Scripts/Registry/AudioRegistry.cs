@@ -66,6 +66,11 @@ public class AudioRegistry : MonoBehaviour
             audioClip = GetAudioClip("weird_explosion"),
             volume = 0.9f
         });
+
+        RegisterAudio("1UP", new AudioSetting() {
+            audioClip = GetAudioClip("one_up"),
+            volume = 0.9f
+        });
     }
 
     public static void RegisterAudio(string internalName, AudioSetting settings)

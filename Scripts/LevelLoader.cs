@@ -171,11 +171,18 @@ public static class LevelLoader
         return CreateArrayOf(s, seperator).Select(x => x.Replace('.', ',')).ToArray();
     }
 
+    public static string PlayThemedMusic(bool isHurryUp = false)
+    {
+        string theme = LevelSettings.GetTheme();
+
+        AudioManager.PlayMusic($"{ theme }_music{ (isHurryUp ? "_hurryUp" : string.Empty) }");
+        return theme;
+    }
 
 
     public static class LevelSettings
     {
-        private static string theme;
+        private static string theme = "overworld";
         private static ushort timer = 300;
 
         public static bool[] triggers = new bool[ushort.MaxValue];
@@ -183,6 +190,10 @@ public static class LevelLoader
         internal static void LoadSettings(string[] equalBreak, int lineNumber)
         {
             switch(equalBreak[0]) {
+                case "theme":
+                    theme = equalBreak[1];
+                    break;
+
                 case "triggers": //triggers that activate upon starting the level
                     ushort[] usArr = equalBreak[1].Split(',').Select(x => CreateVariable<ushort>(x)).ToArray();
 
@@ -191,7 +202,7 @@ public static class LevelLoader
 
                     break;
 
-                case "time":
+                case "timer":
                     timer = CreateVariable<ushort>(equalBreak[1]);
                     break;
             }
@@ -207,6 +218,7 @@ public static class LevelLoader
                 triggers[i] = b;
         }
 
+        internal static string GetTheme() { return theme; }
         internal static ushort GetTimer() { return timer; }
     }
 

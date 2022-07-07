@@ -17,8 +17,10 @@ public class Galoomba : BackToLifeEnemies
 
     public override void Framed()
     {
-        if (kicked && rigidBody.velocity == Vector2.zero)
+        if (kicked && rigidBody.velocity == Vector2.zero) {
+            scoreManager.ResetIndex();
             kicked = false;
+        }
     }
 
     public override bool IsHoldable() { return transform.localScale.x <= 1f && transform.localScale.y <= 1f && DeadMaybe(); }
@@ -26,8 +28,10 @@ public class Galoomba : BackToLifeEnemies
 
     public override void Collided(GameObject GO, Actor actor)
     {
-        if (actor.IsActor(out Enemies enemy) && (isBeingThrown || kicked) && !LayerMaskInterface.IsCreatedLayer(GO.layer)) 
+        if (actor.IsActor(out Enemies enemy) && (isBeingThrown || kicked) && !LayerMaskInterface.IsCreatedLayer(GO.layer)) {
+            scoreManager.AddIndex(1, true);
             enemy.HitByShell(this);
+        }
 
         base.Collided(GO, actor);
     }

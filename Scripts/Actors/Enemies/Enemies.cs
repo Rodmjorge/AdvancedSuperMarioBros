@@ -70,7 +70,7 @@ public class Enemies : Actor
 
     public override void PlayerCollidedAbove(Player player)
     {
-        player.AddJump();
+        player.AddJump(true);
     }
     public override void PlayerStayingCollidedBelow(Player player)
     {

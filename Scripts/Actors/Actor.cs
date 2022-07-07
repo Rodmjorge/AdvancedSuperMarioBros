@@ -25,12 +25,14 @@ public abstract class Actor : MonoBehaviour
 
     protected BoxColliderSettings bcs;
     protected TimerClass timer;
+    protected LevelManager.ScoreManager scoreManager;
     internal ActorRegistry.ActorSettings settings;
 
     public virtual void Start() 
     {
         bcs = new BoxColliderSettings(this, gameObject);
         timer = new TimerClass(GetNumberOfTimers(), this);
+        scoreManager = new LevelManager.ScoreManager(gameObject);
 
         SetBoxColliderBounds();
         UpdateComponents();
@@ -204,6 +206,8 @@ public abstract class Actor : MonoBehaviour
                 timerT.ResetTimer();
                 if (i >= jump.Length) {
                     if (lastOneStop) RigidVector(0f, 0f, true, time);
+
+                    scoreManager.ResetIndex();
                     isBeingThrown = false;
 
                     yield break;

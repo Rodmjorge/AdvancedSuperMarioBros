@@ -105,6 +105,8 @@ public class Player : Actor
 
             jumpTimer = grounded ? jumpTime + (IsWalking() ? jumpTime / 4f : 0f) : 0f;
             isJumping = grounded ? false : isJumping;
+
+            if (grounded) scoreManager.ResetIndex();
         }
     }
 
@@ -133,10 +135,12 @@ public class Player : Actor
     }
 
 
-    internal void AddJump(float time = 0.4f, float multiplied = 1.5f)
+    internal void AddJump(bool addToScore, float time = 0.4f, float multiplied = 1.5f)
     {
         rigidBody.velocity = RigidVector(null, GetJumpForce() * multiplied);
         jumpTimer = time;
+
+        if (addToScore) scoreManager.AddIndex(1, true);
     }
     internal void HitPlayer(GameObject GO, Actor actor)
     {

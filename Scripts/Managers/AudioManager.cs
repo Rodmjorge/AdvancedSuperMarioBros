@@ -18,6 +18,8 @@ public class AudioManager : MonoBehaviour
         return audioManager0;
     }
 
+    public static string GetHurryUpMusic() { return LevelLoader.LevelSettings.GetTheme() + "_music_hurryUp"; }
+
     public static void PlayMusic(string internalName, float startTime = 0f, bool destroyMusic = true)
     {
         if (musicCurrentlyPlaying != null && destroyMusic) 
