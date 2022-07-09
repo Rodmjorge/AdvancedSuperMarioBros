@@ -418,7 +418,7 @@ public abstract class Actor : MonoBehaviour
     {
         if (actor.IsActor(out HitBlock hitBlock0)) {
             hitBlock = hitBlock0;
-            return (hitBlock0.TheBloqHasIndeedBeenHit() && hitBlock0.TimeOfHitting() <= 0.034f && transform.position.y > actor.bcs.GetExtentsYPos());
+            return (hitBlock0.TheBloqHasIndeedBeenHit() && hitBlock0.TimeOfHitting() <= 0.034f && bcs.GetExtentsYNeg() + 0.1f > actor.bcs.GetExtentsYPos());
         }
         else {
             hitBlock = null;

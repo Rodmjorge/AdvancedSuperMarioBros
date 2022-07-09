@@ -70,7 +70,7 @@ public class ShellEnemy : BackToLifeEnemies
             base.JumpThrown(player); 
         else {
             anim.SetBool("shellMoving", true);
-            StartCoroutine(timer.IncreaseTime(0.15f, 30));
+            StartCoroutine(timer.IncreaseTime(0.25f, 30));
 
             walkingRight = player.transform.position.x < transform.position.x;
             moveSpeed *= 4;
@@ -104,12 +104,10 @@ public class ShellEnemy : BackToLifeEnemies
         }
     }
 
-    public override void ChangedDirections(Actor actor)
+    public override void ChangedDirectionsWithActor(Actor actor)
     {
-        if (isShellMoving) 
+        if (isShellMoving)
             CollidedBaseWithHitBlock(actor, this, isShellMoving, scoreManager);
-
-        base.ChangedDirections(actor);
     }
 
     public override IEnumerator LifeBeingHeld()
@@ -167,7 +165,7 @@ public class ShellEnemy : BackToLifeEnemies
     protected override bool InvertOffsetWhenFlippedY() { return true; }
     protected override bool StopTick() { return isInShell; }
     protected override bool DeadMaybe() { return base.DeadMaybe() && timer.GetTime(15) >= 0.08f; }
-    protected override bool PlayerCollidingBoolean() { return base.PlayerCollidingBoolean() || (isShellMoving && timer.GetTime(30) >= 0.15f); }
+    protected override bool PlayerCollidingBoolean() { return base.PlayerCollidingBoolean() || (isShellMoving && timer.GetTime(30) >= 0.25f); }
 
     public override bool DoTurnOnEdges() { return isRed && NotMovingInShell(); }
     public override LayerMask GetLayerMask() { return isShellMoving ? LayerMaskInterface.grounded : base.GetLayerMask(); }

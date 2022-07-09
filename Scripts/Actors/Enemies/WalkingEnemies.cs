@@ -13,7 +13,7 @@ public class WalkingEnemies : Enemies
     {
         if (startsGoingRight) {
             walkingRight = startsGoingRight;
-            ChangedDirections(this);
+            ChangedDirections();
         }
 
         anim.speed = moveSpeed / 2f;
@@ -36,18 +36,17 @@ public class WalkingEnemies : Enemies
 
             if (ColliderCheck.GetActorCollided(GetWallDirection(), boxCollider, GetLayerMask(), out Actor[] actorArr)) {
                 walkingRight = !walkingRight;
+                ChangedDirections();
 
                 foreach (Actor actor in actorArr)
-                    ChangedDirections(actor);
+                    ChangedDirectionsWithActor(actor);
             }
 
             if (DoTurnOnEdges()) {
                 if (!ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, GetLayerMask(), IsWalkingRight() ? ColliderCheck.RaycastThird.Right : ColliderCheck.RaycastThird.Left, GetCloserEdgeFloat())
-                  && ColliderCheck.GetActorCollided(ColliderCheck.WallDirection.Ground, boxCollider, GetLayerMask(), out Actor[] actorArr0, ColliderCheck.RaycastThird.All, GetCloserEdgeFloat())) {
+                  && ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, GetLayerMask(), ColliderCheck.RaycastThird.All, GetCloserEdgeFloat())) {
                     walkingRight = !walkingRight;
-
-                    foreach (Actor actor in actorArr0)
-                        ChangedDirectionsOnEdges(actor);
+                    ChangedDirectionsOnEdges();
                 }
             }
         }
@@ -56,12 +55,14 @@ public class WalkingEnemies : Enemies
     }
 
 
-    public virtual void ChangedDirections(Actor actor) 
+    public virtual void ChangedDirections() 
     {
         if (FlipXWhenChangingDirection())
             spriteR.flipX = !spriteR.flipX;
     }
-    public virtual void ChangedDirectionsOnEdges(Actor actor) { ChangedDirections(actor); }
+    public virtual void ChangedDirectionsOnEdges() { ChangedDirections(); }
+
+    public virtual void ChangedDirectionsWithActor(Actor actor) { return; }
 
     public virtual bool FlipXWhenChangingDirection() { return false; }
     public virtual bool DoTurnOnEdges() { return false; }

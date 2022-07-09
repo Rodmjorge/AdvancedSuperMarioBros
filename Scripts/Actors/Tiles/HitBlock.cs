@@ -92,5 +92,5 @@ public class HitBlock : Tiles
 
 
     public virtual bool IncreaseSizeInAnim() { return true; }
-    public virtual Vector2 GetSizeIncrease() { return new Vector2(0.075f, 0.075f); }
+    public virtual Vector2 GetSizeIncrease() { return new Vector2(0.015f, 0.015f); }
 }
