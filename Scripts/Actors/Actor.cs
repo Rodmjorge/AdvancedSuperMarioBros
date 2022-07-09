@@ -36,6 +36,8 @@ public abstract class Actor : MonoBehaviour
 
         SetBoxColliderBounds();
         UpdateComponents();
+
+        transform.position += ShiftPos();
     }
 
     private void FixedUpdate() 
@@ -71,7 +73,7 @@ public abstract class Actor : MonoBehaviour
         }
 
         else {
-            if (!pauseActor) {
+            if (!pauseActor || LevelManager.IsPaused()) {
                 BooleanBoxAndRigid(false, true);
                 BooleanAnim(false);
 
@@ -108,14 +110,17 @@ public abstract class Actor : MonoBehaviour
     public virtual bool? IsTargetActive(ushort triggeredID) { return (triggeredID <= 0) ? null : LevelLoader.LevelSettings.GetTrigger(triggeredID); }
     public virtual bool IsValidTrigger(ushort triggeredID) { return triggeredID > 0; }
 
-    public virtual Vector2 RigidVector(float? x, float? y, bool groundTouch = false, float? time = null, int? numberOfTimer = null, float? timeForRigid = null, int numberOfTimeForRigid = 1)
+    public virtual Vector3 ShiftPos(Sprite spriteR = null) { return ShiftBySpriteRenderer(spriteR); } 
+    public virtual Vector3 ShiftBySpriteRenderer(Sprite spriteR0 = null) { return new Vector3(((spriteR0 == null ? spriteR.sprite.bounds.size.x : spriteR0.bounds.size.x) - 1f) / 2f, ((spriteR0 == null ? spriteR.sprite.bounds.size.y : spriteR0.bounds.size.y) - 1f) / 2f); }
+
+    public virtual Vector2 RigidVector(float? x, float? y, bool groundTouch = false, float? time = null, int? numberOfTimer = null)
     {
         float x0 = (x == null) ? rigidBody.velocity.x : x.Value;
         float y0 = (y == null) ? rigidBody.velocity.y : y.Value;
 
         if (groundTouch) {
-            if (time != null) StartCoroutine(timer.RunAfterTime(ZeroRigidbodyWhenGroundHit(timeForRigid, numberOfTimeForRigid), time.Value, numberOfTimer));
-            else StartCoroutine(ZeroRigidbodyWhenGroundHit(timeForRigid, numberOfTimeForRigid));
+            if (time != null) StartCoroutine(timer.RunAfterTime(ZeroRigidbodyWhenGroundHit(), time.Value, numberOfTimer));
+            else StartCoroutine(ZeroRigidbodyWhenGroundHit());
         }
 
         return new Vector2(x0, y0);
@@ -129,7 +134,7 @@ public abstract class Actor : MonoBehaviour
 
     public virtual bool IsInsideBloq()
     {
-        return ColliderCheck.InsideCollider(transform.position, transform, LayerMaskInterface.grounded, 0.1f * transform.localScale.x * transform.localScale.y);
+        return false;
     }
     public virtual void InsideCollider() { return; }
 
@@ -169,38 +174,31 @@ public abstract class Actor : MonoBehaviour
         }
     }
 
-    public virtual IEnumerator ZeroRigidbodyWhenGroundHit(float? time = null, int numberOfTimer = 1)
+    public virtual IEnumerator ZeroRigidbodyWhenGroundHit()
     {
         while (true) {
             if (ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, LayerMaskInterface.grounded) && Resume()) {
                 rigidBody.velocity = RigidVector(0f, 0f);
-
-                if (time != null) {
-                    if (timer.UntilTime(numberOfTimer)) {
-                        timer.ResetTimer(numberOfTimer);
-                        yield break;
-                    }
-                }
-                else
-                    yield break;
+                yield break;
             }
 
             yield return new WaitForFixedUpdate();
         }
     }
 
-    public virtual IEnumerator RigidbodyJumpsWhenGroundHit(bool lastOneStop, float time, params Vector2[] jump)
+    public virtual IEnumerator RigidbodyJumpsWhenGroundHit(bool lastOneStop, bool invertXWhenCollideWithWall, float time, params Vector2[] jump)
     {
         isBeingThrown = true;
 
         int i = 0;
         TimerClass timerT = new TimerClass(1);
 
+        bool invert = false;
         while (true) {
 
             if (ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, LayerMaskInterface.grounded) && Resume()
                 && timerT.UntilTime(time)) {
-                rigidBody.velocity = RigidVector(jump[i].x, jump[i].y);
+                rigidBody.velocity = RigidVector(invert ? -jump[i].x : jump[i].x, jump[i].y);
                 i++;
 
                 timerT.ResetTimer();
@@ -214,8 +212,58 @@ public abstract class Actor : MonoBehaviour
                 }
             }
 
+            if (invertXWhenCollideWithWall && rigidBody.velocity.x != 0f) {
+                if (ColliderCheck.CollidedWithWall(rigidBody.velocity.x > 0f ? ColliderCheck.WallDirection.RightWall : ColliderCheck.WallDirection.LeftWall, boxCollider, LayerMaskInterface.grounded)) {
+                    rigidBody.velocity = RigidVector(-rigidBody.velocity.x, null);
+                    invert = !invert;
+                }
+            }
+
             yield return new WaitForFixedUpdate();
         }
+    }
+
+    //invincible frames - 99 timer
+    public virtual IEnumerator InvincibleFrames(SpriteRenderer spriteR, float timeToStart, float timeToDie = 2f, IEnumerator runWhenStop = null, bool destroyGO = true)
+    {
+        GameObject GO = spriteR.gameObject;
+
+        int i = 0;
+        int j = 0;
+        bool invert = false;
+        while (true) {
+            if (Resume() && timer != null) {
+                if (timer.UntilTime(timeToStart, 99)) {
+                    i += invert ? -1 : 1;
+
+                    if (i > (8 - j * 2)) {
+                        invert = true;
+                        spriteR.color = new Color(spriteR.color.r, spriteR.color.g, spriteR.color.b, 0f);
+                    }
+                    else if (i < (-8 + j * 2)) {
+                        invert = false;
+                        spriteR.color = new Color(spriteR.color.r, spriteR.color.g, spriteR.color.b, 1f);
+                    }
+
+                    if (timer.UntilTime(timeToStart + 1f, 99, false) && j < 1)
+                        j++;
+                    else if (timer.UntilTime(timeToStart + 2f, 99, false) && j < 2)
+                        j++;
+                    else if (timer.UntilTime(timeToStart + 3f, 99, false) && j < 3)
+                        j++;
+                    else if (timer.UntilTime(timeToDie + timeToStart + 3f, 99, false)) {
+                        if (runWhenStop != null) StartCoroutine(runWhenStop);
+                        if (destroyGO) Destroy(GO);
+                    }
+                }
+            }
+
+            yield return new WaitForFixedUpdate();
+        }
+    }
+    public virtual void ResetInvincibleFrames(float resetTo = 0f)
+    {
+        if (timer != null) timer.ResetTimer(99, resetTo);
     }
 
     public virtual string PositionString(LevelLoader.TransformPos posRelative)
@@ -237,7 +285,7 @@ public abstract class Actor : MonoBehaviour
     public virtual bool CancelsOutWhenHolding() { return false; }
     public virtual bool DiesWhenCancelledOut() { return false; }
 
-    public virtual void CreateAreaEffector(bool b, LayerMask layerMask)
+    public virtual void CreateAreaEffector(bool b, LayerMask layerMask = default)
     {
         if (b) {
             if (GetComponent<AreaEffector2D>() == null) {
@@ -274,8 +322,6 @@ public abstract class Actor : MonoBehaviour
 
     public virtual void JumpThrown(Player player)
     {
-        AudioManager.PlayAudio("kick_enemy");
-
         bool flipped = player.spriteR.flipX;
         if (player.IsCrouching()) {
             transform.position += new Vector3(flipped ? -0.4f : 0.4f, 0f);
@@ -287,9 +333,10 @@ public abstract class Actor : MonoBehaviour
 
             rigidBody.velocity = RigidVector(f, grounded ? 6f : 8f);
 
-            if (grounded) StartCoroutine(RigidbodyJumpsWhenGroundHit(true, 0.08f, RigidVector(f / 3f, 6f), RigidVector(f / 6f, 4f)));
-            else StartCoroutine(RigidbodyJumpsWhenGroundHit(true, 0.08f, RigidVector(f / 2f, 7f), RigidVector(f / 5f, 5f), RigidVector(f / 7f, 3f)));
+            if (grounded) StartCoroutine(RigidbodyJumpsWhenGroundHit(true, false, 0.08f, RigidVector(f / 3f, 6f), RigidVector(f / 6f, 4f)));
+            else StartCoroutine(RigidbodyJumpsWhenGroundHit(true, false, 0.08f, RigidVector(f / 2f, 7f), RigidVector(f / 5f, 5f), RigidVector(f / 7f, 3f)));
 
+            AudioManager.PlayAudio("kick_enemy");
         }
     }
 
@@ -371,7 +418,7 @@ public abstract class Actor : MonoBehaviour
     {
         if (actor.IsActor(out HitBlock hitBlock0)) {
             hitBlock = hitBlock0;
-            return (hitBlock0.TheBloqHasIndeedBeenHit() && hitBlock0.TimeOfHitting() <= 0.034f);
+            return (hitBlock0.TheBloqHasIndeedBeenHit() && hitBlock0.TimeOfHitting() <= 0.034f && transform.position.y > actor.bcs.GetExtentsYPos());
         }
         else {
             hitBlock = null;

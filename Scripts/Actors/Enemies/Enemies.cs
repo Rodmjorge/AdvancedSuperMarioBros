@@ -4,7 +4,6 @@ using UnityEngine;
 public class Enemies : Actor
 {
     public float triggerSetTime = 0.5f;
-    public LayerMask layerMask { get { return LayerMaskInterface.grounded + LayerMaskInterface.enemy; } }
 
     public override void DataLoaded(string s, string beforeEqual) 
     {
@@ -20,10 +19,10 @@ public class Enemies : Actor
     public override bool CancelsOutWhenHolding() { return true; }
     public override bool DiesWhenCancelledOut() { return true; }
 
-    public virtual void HitByBlock(HitBlock hitBlock, bool hitOnLeft) { StartCoroutine(Disintegrated(hitBlock.gameObject, hitOnLeft)); }
-    public virtual void HitByShell(Enemies enemy) { StartCoroutine(Disintegrated(enemy.gameObject, LevelLoader.RandomBoolean())); }
-    public virtual void CancelledOut(GameObject GO, bool goLeft) { StartCoroutine(Disintegrated(GO, goLeft)); }
-    public override void InsideCollider() { StartCoroutine(Disintegrated(null, LevelLoader.RandomBoolean())); }
+    public virtual void HitByBlock(HitBlock hitBlock, bool hitOnLeft) { if (!pauseActor) StartCoroutine(Disintegrated(hitBlock.gameObject, hitOnLeft)); }
+    public virtual void HitByShell(Enemies enemy) { if (!pauseActor) StartCoroutine(Disintegrated(enemy.gameObject, LevelLoader.RandomBoolean())); }
+    public virtual void CancelledOut(GameObject GO, bool goLeft) { if (!pauseActor) StartCoroutine(Disintegrated(GO, goLeft)); }
+    public override void InsideCollider() { if (!pauseActor) StartCoroutine(Disintegrated(null, LevelLoader.RandomBoolean())); }
 
     public virtual IEnumerator Disintegrated(GameObject GO, bool goLeft)
     {
@@ -46,12 +45,15 @@ public class Enemies : Actor
     }
 
     public virtual bool UseTargetID() { return true; }
+    public virtual LayerMask GetLayerMask() { return LayerMaskInterface.grounded + LayerMaskInterface.enemy; }
 
 
     public override void Collided(GameObject GO, Actor actor)
     {
         if (actor.IsActor(out Enemies enemy) && !LayerMaskInterface.IsCreatedLayer(GO.layer)) {
             if (enemy.DiesWhenCancelledOut() && this.CancelsOutWhenHolding() && this.isBeingHeld) {
+                scoreManager.SetScore(300, true, transform.position);
+
                 enemy.CancelledOut(gameObject, false);
                 this.CancelledOut(GO, true);
             }

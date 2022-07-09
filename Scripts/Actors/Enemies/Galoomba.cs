@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class Galoomba : BackToLifeEnemies
 {
-    private bool dead;
     private bool kicked;
 
     public Vector2 kickingVelocity = new Vector2(7f, 7f);
@@ -26,23 +25,18 @@ public class Galoomba : BackToLifeEnemies
     public override bool IsHoldable() { return transform.localScale.x <= 1f && transform.localScale.y <= 1f && DeadMaybe(); }
     public override void ChangeHoldingStatus(bool b) { isBeingHeld = b; }
 
-    public override void Collided(GameObject GO, Actor actor)
+    public override void StayingCollided(GameObject GO, Actor actor)
     {
-        if (actor.IsActor(out Enemies enemy) && (isBeingThrown || kicked) && !LayerMaskInterface.IsCreatedLayer(GO.layer)) {
-            scoreManager.AddIndex(1, true);
-            enemy.HitByShell(this);
-        }
-
-        base.Collided(GO, actor);
+        ShellEnemy.CollidedBase(actor, this, isBeingThrown || kicked, scoreManager);
+        base.StayingCollided(GO, actor);
     }
 
     public override void KillEnemy()
     {
-        dead = true;
         spriteR.flipY = true;
 
         StartCoroutine(timer.IncreaseTime(0.08f, 15));
-        CreateAreaEffector(true, LayerMaskInterface.enemyBlock);
+        CreateAreaEffector(true, LayerMaskInterface.enemyBlockT);
 
         base.KillEnemy();
     }
@@ -64,19 +58,14 @@ public class Galoomba : BackToLifeEnemies
         }
     }
 
-    public override IEnumerator LifeBeingHeld()
+    public override IEnumerator CameBackToLife()
     {
-        dead = false;
         spriteR.flipY = false;
 
         timer.ResetTimer(15);
+        CreateAreaEffector(false);
 
-        yield break;
-    }
-    public override IEnumerator CameBackToLife()
-    {
-        StartCoroutine(LifeBeingHeld());
-        yield break;
+        return base.CameBackToLife();
     }
 
     protected override bool StopTick() { return dead; }

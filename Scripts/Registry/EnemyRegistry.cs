@@ -48,6 +48,17 @@ public class EnemyRegistry : ActorRegistry
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "goombud")
         });
 
+        RegisterActor("koopa_troopa", new ActorSettings() {
+            actorClass = new ShellEnemy(),
+            layer = LayerMaskInterface.enemyLayer,
+
+            defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "koopa_troops_green_1"),
+            size = new Vector2(0.9f, 1f),
+            offset = new Vector2(0f, -0.5f),
+            sortingLayer = SortingLayerInterface.enemiesLayer,
+            animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "koopa_troopa")
+        });
+
         base.Awake();
     }
 

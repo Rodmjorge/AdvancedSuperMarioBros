@@ -19,13 +19,17 @@ public class HitBlock : Tiles
 
     public override void PlayerCollidedBelow(Player player)
     {
-        if (!doingAnim) CollidedHitBlock();
+        if ((player.transform.position.x <= bcs.GetExtentsXPos() - 0.1f && player.transform.position.x > bcs.GetExtentsXNeg() + 0.1f) || 
+            player.transform.position.y < bcs.GetExtentsYNeg())
+            CollidedHitBlock();
     }
 
     public virtual void CollidedHitBlock()
     {
-        HasHitBlock();
-        StartCoroutine(HitBlockAnimation());
+        if (!doingAnim) {
+            HasHitBlock();
+            StartCoroutine(HitBlockAnimation());
+        }
     }
 
     public virtual IEnumerator HitBlockAnimation()
@@ -36,17 +40,18 @@ public class HitBlock : Tiles
         doingAnim = true;
         bool b = true;
 
+        TimerClass timerT = new TimerClass(1);
         while (true) {
 
             if (Resume()) {
                 float f = (sizeIncreasingTime / 0.1f);
                 float g = Time.fixedDeltaTime * 15f;
-                Vector2 h = new Vector2(size.x, size.y);
+                Vector2 h = size;
 
                 Vector3 posIncrease = new Vector3(0f, ((0.2f * h.y) / f) * g, 0f);
                 Vector3 sizeIncrease = IncreaseSizeInAnim() ? new Vector3(((GetSizeIncrease().x * h.x) / f) * g, ((GetSizeIncrease().y * h.y) / f) * g, 0f) : new Vector3(0f, 0f, 0f);
 
-                if (timer.WhileTime(sizeIncreasingTime)) {
+                if (timerT.WhileTime(sizeIncreasingTime)) {
                     transform.position += posIncrease;
                     transform.localScale += sizeIncrease;
                 }
@@ -59,19 +64,18 @@ public class HitBlock : Tiles
                     transform.position -= posIncrease;
                     transform.localScale -= sizeIncrease;
 
-                    if (timer.UntilTime(sizeIncreasingTime * 2, 1, false)) {
+                    if (timerT.UntilTime(sizeIncreasingTime * 2, 1, false)) {
                         transform.position = new Vector3(transform.position.x, posY, transform.position.z);
                         transform.localScale = size;
 
                         doingAnim = false;
-                        timer.ResetTimer();
-
                         FinishedAnim();
+
                         yield break;
                     }
                 }
 
-                sizeTimer = timer.GetTime();
+                sizeTimer = timerT.GetTime();
             }
 
             yield return new WaitForFixedUpdate();
