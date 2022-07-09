@@ -15,14 +15,11 @@ public class UIManager : MonoBehaviour
     internal TextMeshProUGUI scoreCounter { get { return GetText(transform, "scoreboard_text", false); } }
     internal TextMeshProUGUI timerCounter { get { return GetText(transform, "timer_counter", true, "timer_text"); } }
 
-    private int[] lengths = new int[4]; //1 - life, 2 - coin, 3 - score, 4 - timer
-
     public static GameObject CreateUI()
     {
         GameObject UIPrefab = (GameObject)Instantiate(Resources.Load("UI/UI"));
-        UI = UIPrefab.AddComponent<UIManager>();
 
-        UI.SetLengths();
+        UI = UIPrefab.AddComponent<UIManager>();
         UI.SetCamera();
 
         return UIPrefab;
@@ -30,10 +27,10 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        lifeCounter.text = MaxOut(lengths[0], LevelManager.lifeCounter.ToString());
-        coinCounter.text = MaxOut(lengths[1], LevelManager.coinCounter.ToString());
-        scoreCounter.text = MaxOut(lengths[2], LevelManager.score.ToString());
-        timerCounter.text = MaxOut(lengths[3], Math.Floor(LevelManager.timer).ToString());
+        lifeCounter.text = MaxOut(LevelManager.counterLengths[0], LevelManager.lifeCounter.ToString());
+        coinCounter.text = MaxOut(LevelManager.counterLengths[1], LevelManager.coinCounter.ToString());
+        scoreCounter.text = MaxOut(LevelManager.counterLengths[2], LevelManager.score.ToString());
+        timerCounter.text = MaxOut(LevelManager.counterLengths[3], Math.Floor(LevelManager.timer).ToString());
     }
 
     public GameObject SetCamera()
@@ -44,16 +41,6 @@ public class UIManager : MonoBehaviour
         canv.planeDistance = camera.farClipPlane;
 
         return canv.gameObject;
-    }
-
-    public int[] SetLengths()
-    {
-        int[] parses = new int[] { int.Parse(lifeCounter.text), int.Parse(coinCounter.text), int.Parse(scoreCounter.text), int.Parse(timerCounter.text) };
-
-        for (int i = 0; i < lengths.Length; i++)
-            lengths[i] = parses[i];
-
-        return lengths;
     }
 
     public string MaxOut(int i, string s)

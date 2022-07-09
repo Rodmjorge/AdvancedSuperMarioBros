@@ -4,6 +4,7 @@ using UnityEngine;
 public class ContainerBlock : HitBlock
 {
     protected bool isUsedBlock { get { return anim.GetBool(UsedBlockAnimString()); } }
+    protected Actor containerActor = null;
 
     public string containerObject = null;
     public ushort timesCanUse = 1;
@@ -35,25 +36,43 @@ public class ContainerBlock : HitBlock
         }
     }
 
-    public override void FinishedAnim()
+    public override void HasHitBlock()
     {
         containerObject = (containerObject == null) ? GetDefaultContainer() : containerObject;
-        const float time = 0.15f;
 
         if (containerObject != "null") {
-            Actor actor = LevelLoader.CheckLineInBrackets(containerObject, gameObject, true, null, ActorRegistry.ActorSettings.CreatedActorTypes.EnableAfterTime, time);
+            Actor actor = LevelLoader.CheckLineInBrackets(containerObject, gameObject, true, null);
+            actor.transform.position = new Vector3(actor.transform.position.x, bcs.GetExtentsYPos());
 
-            actor.transform.position = new Vector3(actor.transform.position.x, bcs.GetExtentsYPos() - 0.5f, 0f);
-            actor.rigidBody.velocity = RigidVector(null, 12f);
+            if (actor.IsActor(out Coin coin))
+                coin.SetAsContainerCoin();
+            else
+                Destroy(actor.gameObject);
 
-            if (actor.gameObject.transform.localScale.x > 1f || actor.gameObject.transform.localScale.y > 1f)
-                StartCoroutine(SizeIncreaseOfActor(actor.gameObject.transform, time, 0.05f));
-
-            AudioManager.PlayAudio("container_block");
+            containerActor = actor;
         }
-        else
-            WhenContainerIsNull();
+    }
 
+    public override void FinishedAnim()
+    {
+        const float time = 0.15f;
+
+        if (containerActor == null) {
+            if (containerObject != "null") {
+                Actor actor = LevelLoader.CheckLineInBrackets(containerObject, gameObject, true, null, ActorRegistry.ActorSettings.CreatedActorTypes.EnableAfterTime, time);
+                actor.transform.position = new Vector3(actor.transform.position.x, bcs.GetExtentsYPos() - 0.5f);
+                actor.rigidBody.velocity = RigidVector(null, 12f);
+
+                if (actor.gameObject.transform.localScale.x > 1f || actor.gameObject.transform.localScale.y > 1f)
+                    StartCoroutine(SizeIncreaseOfActor(actor.gameObject.transform, time, 0.05f));
+
+                AudioManager.PlayAudio("container_block");
+            }
+            else
+                WhenContainerIsNull();
+        }
+
+        containerActor = null;
         anim.SetBool(UsedBlockAnimString(), UsedBoolean());
     }
 
@@ -87,9 +106,12 @@ public class ContainerBlock : HitBlock
     {
         TimerClass timerT = new TimerClass(1);
 
+        if (timeUntilUsedBlock == 0f)
+            timeUntilUsedBlock = timesCanUse / 2.2f;
+
         while (true) {
             if (Resume()) {
-                if ((timerT.UntilTime(timeUntilUsedBlock) && timeUntilUsedBlock != 0f) || (usedTimes >= timesCanUse)) {
+                if (timerT.UntilTime(timeUntilUsedBlock) || (usedTimes >= timesCanUse)) {
                     getUsed = true;
                     yield break;
                 }
@@ -102,5 +124,5 @@ public class ContainerBlock : HitBlock
     public virtual void WhenContainerIsNull() { return; }
 
     public virtual string UsedBlockAnimString() { return "used"; }
-    public virtual string GetDefaultContainer() { return "null"; }
+    public virtual string GetDefaultContainer() { return "[id=coin]"; }
 }

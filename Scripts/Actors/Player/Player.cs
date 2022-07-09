@@ -32,7 +32,7 @@ public class Player : Actor
     private float jumpTimer;
     private bool isJumping;
 
-    private bool isHoldingSomething;
+    internal bool isHoldingSomething;
     private Actor whatIsHolding;
 
     public override void Tick()
@@ -49,7 +49,7 @@ public class Player : Actor
         anim.SetBool("holding", isHoldingSomething);
 
         if (isHoldingSomething) {
-            if (!Input.GetKey(GetHoldingKeyCode())) {
+            if (!IsTryingToHold()) {
                 whatIsHolding.Thrown(this);
                 NotHoldingAnything();
 
@@ -173,8 +173,11 @@ public class Player : Actor
     private float GetJumpForce() { return 9f; }
     private string GetJumpSound() { return "small_mario_jump"; }
 
-
+    
+    public bool IsTryingToHold() { return Input.GetKey(GetHoldingKeyCode()); }
     public static KeyCode GetHoldingKeyCode() { return KeyCode.UpArrow; }
+
+
     public static bool IsPlayer(GameObject GO) { return GO.GetComponent<Player>() != null; }
 
     public static bool IsPlayer(GameObject GO, out Player player) {

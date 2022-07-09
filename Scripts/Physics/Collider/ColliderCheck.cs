@@ -1,9 +1,10 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class ColliderCheck
 {
-    public static bool CollidedWithWall(WallDirection direction, BoxCollider2D boxCollider, LayerMask layerMask, RaycastThird returnRaycast = RaycastThird.All, float shiftDivided = 1f, bool checkIfEnabled = false)
+    public static RaycastHit2D[] GetRaycast(WallDirection direction, BoxCollider2D boxCollider, LayerMask layerMask, float shiftDivided = 1f)
     {
         RaycastHit2D rh1, rh2, rh3;
 
@@ -51,31 +52,49 @@ public static class ColliderCheck
         rh2 = Physics2D.Raycast(boxCollider.bounds.center + shiftRH2D, vectorDirect, extents + extentsAddition, layerMask);
         rh3 = Physics2D.Raycast(boxCollider.bounds.center - shiftRH2D, vectorDirect, extents + extentsAddition, layerMask);
 
+        return new RaycastHit2D[] { rh1, rh2, rh3 };
+    }
+
+    public static bool CollidedWithWall(WallDirection direction, BoxCollider2D boxCollider, LayerMask layerMask, RaycastThird returnRaycast = RaycastThird.All, float shiftDivided = 1f, bool checkIfEnabled = false, RaycastHit2D[] rh0 = null)
+    {
         if (checkIfEnabled && !boxCollider.enabled)
             return false;
 
+        RaycastHit2D[] rh = (rh0 == null) ? GetRaycast(direction, boxCollider, layerMask, shiftDivided) : rh0;
         switch (returnRaycast) {
             default:
             case RaycastThird.All:
-                return rh1.collider != null || rh2.collider != null || rh3.collider != null;
+                return rh[0].collider != null || rh[1].collider != null || rh[2].collider != null;
 
             case RaycastThird.AllTrue:
-                return rh1.collider != null && rh2.collider != null && rh3.collider != null;
+                return rh[0].collider != null && rh[1].collider != null && rh[2].collider != null;
 
             case RaycastThird.Left:
-                return rh3.collider != null;
+                return rh[2].collider != null;
 
             case RaycastThird.Right:
-                return rh2.collider != null;
+                return rh[1].collider != null;
 
             case RaycastThird.Middle:
-                return rh1.collider != null;
+                return rh[0].collider != null;
         }
     }
 
-    public static bool InsideCollider(Vector3 pos, Transform trans, LayerMask layerMask, float? radius = null)
+    public static bool GetActorCollided(WallDirection direction, BoxCollider2D boxCollider, LayerMask layerMask, out Actor[] actor, RaycastThird returnRaycast = RaycastThird.All, float shiftDivided = 1f, bool checkIfEnabled = false)
     {
-        return Physics2D.OverlapCircle(pos, (radius == null) ? trans.localScale.x / 2f : radius.Value, layerMask) != null;
+        RaycastHit2D[] rh = GetRaycast(direction, boxCollider, layerMask, shiftDivided);
+        List<Actor> actorList = new List<Actor>();
+
+        foreach (RaycastHit2D rhCol in rh)
+            if (rhCol.collider != null) actorList.Add(rhCol.collider.gameObject.GetComponent<Actor>());
+        actor = actorList.ToArray();
+
+        return CollidedWithWall(direction, boxCollider, layerMask, returnRaycast, shiftDivided, checkIfEnabled, rh);
+    }
+
+    public static bool InsideCollider(Vector2 pos, Vector2 size, LayerMask layerMask)
+    {
+        return Physics2D.OverlapBox(pos, size, 0f, layerMask) != null;
     }
 
 

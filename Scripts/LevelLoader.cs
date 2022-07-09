@@ -30,7 +30,7 @@ public static class LevelLoader
             int lineNumber = i + 1;
             string line = lines[i];
 
-            if (CheckForID(line) == false) {
+            if (CheckForIDNumber(line) == false) {
                 CheckLine(line, lineNumber);
             }
         }
@@ -103,13 +103,17 @@ public static class LevelLoader
         return (actor != null) ? actor.gameObject : null;
     }
 
-    private static bool? CheckForID(string s)
+    private static bool? CheckForIDNumber(string s)
     {
         if (int.TryParse(s.Split(';').Where(x => x.StartsWith("idNumber")).ToArray()[0].Split('=')[1], out int i)) {
             return numberIDs.Contains(i);
         }
 
         return null;
+    }
+    public static string CheckForID(string s)
+    {
+        return s.Split(';').Where(x => x.StartsWith("id")).ToArray()[0].Split('=')[1];
     }
 
     private static bool IsNotEqual(string s, string t)
@@ -148,6 +152,8 @@ public static class LevelLoader
                 value = (int)CreateVariable<float>(s);
             else if (type == typeof(ushort))
                 value = (ushort)CreateVariable<int>(s);
+            else if (type == typeof(ulong))
+                value = ulong.Parse(s);
 
             else if (type == typeof(ushort[]))
                 value = CreateArrayOf(s).Select(x => CreateVariable<ushort>(x)).ToArray();
@@ -183,7 +189,7 @@ public static class LevelLoader
     public static class LevelSettings
     {
         private static string theme = "overworld";
-        private static ushort timer = 300;
+        private static ulong timer = 300;
 
         public static bool[] triggers = new bool[ushort.MaxValue];
 
@@ -203,7 +209,7 @@ public static class LevelLoader
                     break;
 
                 case "timer":
-                    timer = CreateVariable<ushort>(equalBreak[1]);
+                    timer = CreateVariable<ulong>(equalBreak[1]);
                     break;
             }
         }
@@ -219,7 +225,7 @@ public static class LevelLoader
         }
 
         internal static string GetTheme() { return theme; }
-        internal static ushort GetTimer() { return timer; }
+        internal static ulong GetTimer() { return timer; }
     }
 
     public enum TransformPos

@@ -13,6 +13,7 @@ public class TilesRegistry : ActorRegistry
             defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "overworld_ground"),
             size = new Vector2(1f, 1f),
             sortingLayer = SortingLayerInterface.groundLayer,
+            smoothing = 0f,
             isKinematic = true
         });
 
@@ -23,6 +24,7 @@ public class TilesRegistry : ActorRegistry
             defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "question_block_particle"),
             isTrigger = true,
             size = new Vector2(0.4f, 0.4f),
+            smoothing = 0f,
             sortingLayer = SortingLayerInterface.playerLayer,
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "particle")
         });
@@ -33,6 +35,7 @@ public class TilesRegistry : ActorRegistry
 
             defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "question_blok1"),
             size = new Vector2(1f, 1f),
+            smoothing = 0f,
             sortingLayer = SortingLayerInterface.blockLayer,
             isKinematic = true,
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "question_block")
@@ -43,6 +46,7 @@ public class TilesRegistry : ActorRegistry
 
             defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "3block_question_blok1"),
             size = new Vector2(3f, 1f),
+            smoothing = 0f,
             sortingLayer = SortingLayerInterface.blockLayer,
             isKinematic = true,
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "3wide_question_block")
@@ -54,6 +58,7 @@ public class TilesRegistry : ActorRegistry
 
             defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "flip_block"),
             size = new Vector2(1f, 1f),
+            smoothing = 0f,
             sortingLayer = SortingLayerInterface.blockLayer,
             isKinematic = true,
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "flip_block")
@@ -63,8 +68,9 @@ public class TilesRegistry : ActorRegistry
             actorClass = new Coin(),
             layer = LayerMaskInterface.tBlockLayer,
 
-            defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "coin_1"),
-            size = new Vector2(0.7f, 0.98f),
+            defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "coin1"),
+            size = new Vector2(0.7f, 1f),
+            smoothing = 0f,
             sortingLayer = SortingLayerInterface.blockLayer,
             isKinematic = true,
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "coin")

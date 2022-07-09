@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,10 +9,17 @@ public class LevelManager : MonoBehaviour
 {
     private static bool pause;
 
-    public static uint lifeCounter = 5;
-    public static uint coinCounter;
+    public static ulong lifeCounter = 5;
+    public static ulong coinCounter;
     public static ulong score;
     public static double timer;
+
+    public readonly static int[] counterLengths = new int[] {
+        2,   //life counter
+        2,   //coin counter
+        9,   //score
+        3    //timer
+    };
 
     public static LevelManager levelManager;
     
@@ -33,18 +42,44 @@ public class LevelManager : MonoBehaviour
 
     public static void Add1UP(uint i, bool play1UPSound = true)
     {
-        lifeCounter += i;
+        lifeCounter = MaxOut(lifeCounter + i, 0);
         if (play1UPSound) AudioManager.PlayAudio("1UP");
     }
+    public static void AddCoin(uint i)
+    {
+        coinCounter += i;
+        uint dividedBy100 = (uint)Math.Floor(coinCounter / 100f);
+
+        if (dividedBy100 > 0) {
+            Add1UP(dividedBy100);
+
+            string s = coinCounter.ToString();
+            coinCounter = ulong.Parse(s.Substring(s.Length - 2, 2));
+        }
+    }
+
     public static void AddToScore(string s)
     {
         if (ulong.TryParse(s, out ulong scoreAdder))
-            score += scoreAdder;
+            AddToScore(scoreAdder);
+    }
+    public static void AddToScore(ulong ul)
+    {
+        score = MaxOut(score + ul, 2);
+    }
+
+    public static ulong MaxOut(ulong ul, int index)
+    {
+        ulong ulMax = ulong.Parse(string.Join(',', Enumerable.Repeat("9", counterLengths[index]).ToArray()).Replace(",", ""));
+        if (ul > ulMax)
+            return ulMax;
+
+        return ul;
     }
 
     private IEnumerator TimerDecrease()
     {
-        timer = LevelLoader.LevelSettings.GetTimer() + 1;
+        timer = MaxOut(LevelLoader.LevelSettings.GetTimer() + 1, 3);
 
         bool hasPlayedHurryUpMusic = false;
         while (true) {
@@ -92,7 +127,7 @@ public class LevelManager : MonoBehaviour
         private static GameObject scoreUI = null;
         private static Canvas scoreUICanvas = null;
 
-        private static uint[] scores = new uint[] { 200, 400, 800, 1000, 2000, 4000, 8000 };
+        private readonly static uint[] scores = new uint[] { 200, 400, 800, 1000, 2000, 4000, 8000 };
 
         private GameObject gameObject;
         private int scoreIndex;
@@ -143,15 +178,19 @@ public class LevelManager : MonoBehaviour
             return scoreTxt;
         }
 
-        public void SetScore(string s, bool addToScore, Vector2 pos, Color color)
+        public void SetScore(string s, bool addToScore, Vector2 pos, Color? color = null)
         {
             TextMeshProUGUI text = CreateScoreText(pos);
 
             text.text = s;
-            text.color = color;
+            text.color = (color == null) ? Color.white : color.Value;
 
             text.StartCoroutine(ScoreAnim(text.gameObject));
             if (addToScore) AddToScore(s);
+        }
+        public void SetScore(ulong ul, bool addToScore, Vector2 pos, Color? color = null)
+        {
+            SetScore(ul.ToString(), addToScore, pos, color);
         }
 
         public void AddIndex(int i, bool spawnScore, bool get1UP = true, Vector2? pos = null, Color? color = null)

@@ -180,6 +180,7 @@ public abstract class ActorRegistry : MonoBehaviour
         protected static PhysicsMaterial2D defaultPhysicMaterial { get { return PhysicMaterialInterface.NoFriction(); } }
 
 
+        protected readonly static bool useFullKinematicContacts = true;
         protected readonly static float rbGravityScale = 5;
         protected readonly static bool rbFreezeRot = true;
         protected readonly static bool animApplyRootMotion = false;
@@ -220,6 +221,7 @@ public abstract class ActorRegistry : MonoBehaviour
             Rigidbody2D rigidBody = gameObject.AddComponent<Rigidbody2D>();
 
             rigidBody.isKinematic = isKinematic;
+            rigidBody.useFullKinematicContacts = useFullKinematicContacts;
             rigidBody.sharedMaterial = physics;
             rigidBody.collisionDetectionMode = collisionDetection;
 

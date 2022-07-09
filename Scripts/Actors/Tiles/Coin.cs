@@ -5,48 +5,83 @@ public class Coin : Tiles
 {
     protected bool containerBlockCoin;
 
+    public override void SetBoxColliderBounds() { bcs.SetBoxColliderBoundsPos(0.3f); }
     public override void PlayerCollided(Player player)
     {
         CollidedWithCoin();
     }
-    public override void CollidedBelow(GameObject GO, Actor actor)
+
+    public override void StayingCollidedBelow(GameObject GO, Actor actor)
     {
         if (HitByBlockBelow(actor, out _))
-            SetAsContainerBlock();
+            SetAsContainerCoin();
 
-        base.CollidedBelow(GO, actor);
+        base.StayingCollidedBelow(GO, actor);
     }
 
     public virtual void CollidedWithCoin()
     {
         if (!containerBlockCoin) {
             SetTargetBoolean(true);
-            AudioManager.PlayAudio("coin");
+
+            LevelManager.AddCoin(GetCoinInt());
+            LevelManager.AddToScore(GetCoinScore());
+            AudioManager.PlayAudio(GetSound());
 
             Destroy(gameObject);
         }
     }
 
-    public virtual void SetAsContainerBlock()
+    public virtual void SetAsContainerCoin()
     {
         containerBlockCoin = true;
         anim.SetBool("containerBlock", true);
 
         StartCoroutine(ContainerBlockCoinAnim());
+        ResetInvincibleFrames();
+    }
+    public virtual void SetAsPhysicsCoin()
+    {
+        rigidBody.isKinematic = false;
+        float f = LevelLoader.RandomBoolean() ? -1.5f : 1.5f;
+
+        StartCoroutine(RigidbodyJumpsWhenGroundHit(true, true, 0.08f, RigidVector(f, 9f), RigidVector(f, 5f)));
+        StartCoroutine(InvincibleFrames(spriteR, 1.5f));
     }
 
     protected virtual IEnumerator ContainerBlockCoinAnim()
     {
-        rigidBody.velocity = RigidVector(null, 11f);
+        rigidBody.isKinematic = false;
+        rigidBody.velocity = RigidVector(null, 15f);
 
+        BooleanBoxCollider(false);
+        ContainerCoinCollected();
+
+        TimerClass timerT = new TimerClass(1);
         while (true) {
             if (Resume()) {
-                yield break;
+
+                if (timerT.UntilTime(0.6f)) {
+                    ContainerCoinDestroyed();
+                    Destroy(gameObject);
+                }
             }
 
             yield return new WaitForFixedUpdate();
         }
     }
+
+    public virtual void ContainerCoinCollected() {
+        AudioManager.PlayAudio(GetSound());
+    }
+    public virtual void ContainerCoinDestroyed() {
+        scoreManager.SetScore(GetCoinScore(), true, transform.position);
+        LevelManager.AddCoin(GetCoinInt());
+    }
+
+    public virtual uint GetCoinInt() { return 1; }
+    public virtual ulong GetCoinScore() { return 100; }
+    public virtual string GetSound() { return "coin"; }
 
     public override bool PlayDestroySound() { return false; }
     public override Particle GetParticle() { return null; }

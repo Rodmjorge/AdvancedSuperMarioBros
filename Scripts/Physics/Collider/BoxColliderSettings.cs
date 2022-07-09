@@ -5,7 +5,7 @@ public class BoxColliderSettings
 {
     protected readonly Actor actor;
 
-    protected readonly BoxCollider2D[] boxcolliders;
+    protected BoxCollider2D[] boxcolliders { get { return gameObject.GetComponents<BoxCollider2D>(); } }
     protected BoxCollider2D boxcollider { get { return boxcolliders[0]; } }
 
     protected readonly GameObject gameObject;
@@ -33,7 +33,6 @@ public class BoxColliderSettings
     public BoxColliderSettings(Actor actor, GameObject gameObject)
     {
         this.actor = actor;
-        this.boxcolliders = gameObject.GetComponents<BoxCollider2D>();
         this.gameObject = gameObject;
     }
 
@@ -73,4 +72,6 @@ public class BoxColliderSettings
 
     public float GetExtentsYPos() { return GetCenterPosition().y + extents.y; }
     public float GetExtentsYNeg() { return GetCenterPosition().y - extents.y; }
+    public float GetExtentsXPos() { return GetCenterPosition().x + extents.x; }
+    public float GetExtentsXNeg() { return GetCenterPosition().x - extents.x; }
 }
