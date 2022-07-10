@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -189,7 +190,7 @@ public class ShellEnemy : BackToLifeEnemies
             CollidedBase(actor, enemies, true, scoreManager);
 
             if (actor.IsActor(out HitBlock hitBlock)) 
-                hitBlock.CollidedHitBlock();
+                hitBlock.CollidedHitBlock(null);
         }
     }
 }

@@ -21,18 +21,18 @@ public class HitBlock : Tiles
     {
         if ((player.transform.position.x <= bcs.GetExtentsXPos() - 0.1f && player.transform.position.x > bcs.GetExtentsXNeg() + 0.1f) || 
             player.transform.position.y < bcs.GetExtentsYNeg())
-            CollidedHitBlock();
+            CollidedHitBlock(player);
     }
 
-    public virtual void CollidedHitBlock()
+    public virtual void CollidedHitBlock(Player player)
     {
         if (!doingAnim) {
             HasHitBlock();
-            StartCoroutine(HitBlockAnimation());
+            StartCoroutine(HitBlockAnimation(player));
         }
     }
 
-    public virtual IEnumerator HitBlockAnimation()
+    public virtual IEnumerator HitBlockAnimation(Player player)
     {
         Vector3 size = transform.localScale;
         float posY = transform.position.y;
@@ -69,7 +69,7 @@ public class HitBlock : Tiles
                         transform.localScale = size;
 
                         doingAnim = false;
-                        FinishedAnim();
+                        FinishedAnim(player);
 
                         yield break;
                     }
@@ -85,12 +85,12 @@ public class HitBlock : Tiles
 
     public virtual void HasHitBlock() { return; }
     public virtual void ReachedMaxSizeInAnim() { return; }
-    public virtual void FinishedAnim() { return; }
+    public virtual void FinishedAnim(Player player) { return; }
 
     public virtual bool TheBloqHasIndeedBeenHit() { return doingAnim; }
     public virtual float TimeOfHitting() { return sizeTimer; }
 
 
     public virtual bool IncreaseSizeInAnim() { return true; }
-    public virtual Vector2 GetSizeIncrease() { return new Vector2(0.015f, 0.015f); }
+    public virtual Vector2 GetSizeIncrease() { return new Vector2(0.03f, 0.03f); }
 }

@@ -53,7 +53,7 @@ public class EnemyRegistry : ActorRegistry
             layer = LayerMaskInterface.enemyLayer,
 
             defaultSprite = Resources.Load<Sprite>(GetSpritePath() + "koopa_troops_green_1"),
-            size = new Vector2(0.9f, 1f),
+            size = new Vector2(0.8f, 1f),
             offset = new Vector2(0f, -0.5f),
             sortingLayer = SortingLayerInterface.enemiesLayer,
             animatorController = Resources.Load<RuntimeAnimatorController>(GetAnimatorPath() + "koopa_troopa")

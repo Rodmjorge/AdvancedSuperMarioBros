@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class BackToLifeEnemies : WalkingEnemies
+public class BackToLifeEnemies : Enemies
 {
     protected bool dead;
     protected bool shakingAlready;

@@ -9,6 +9,7 @@ public class ContainerBlock : HitBlock
     public string containerObject = null;
     public ushort timesCanUse = 1;
     public float timeUntilUsedBlock = 0f;
+    public bool progressive = true;
 
     private ushort usedTimes;
     private bool getUsed;
@@ -21,18 +22,19 @@ public class ContainerBlock : HitBlock
         containerObject = LevelLoader.CreateVariable(s, beforeEqual, "containing", containerObject);
         timesCanUse = LevelLoader.CreateVariable(s, beforeEqual, "uses", timesCanUse);
         timeUntilUsedBlock = LevelLoader.CreateVariable(s, beforeEqual, "timeForUses", timeUntilUsedBlock);
+        progressive = LevelLoader.CreateVariable(s, beforeEqual, "progressive", progressive);
 
         base.DataLoaded(s, beforeEqual);
     }
 
-    public override void CollidedHitBlock()
+    public override void CollidedHitBlock(Player player)
     {
         if (!isUsedBlock) {
             if (usedTimes <= 0) 
                 StartCoroutine(UsedTimeCounter());
             
             usedTimes++;
-            base.CollidedHitBlock();
+            base.CollidedHitBlock(player);
         }
     }
 
@@ -53,7 +55,7 @@ public class ContainerBlock : HitBlock
         }
     }
 
-    public override void FinishedAnim()
+    public override void FinishedAnim(Player player)
     {
         const float time = 0.15f;
 
@@ -61,7 +63,22 @@ public class ContainerBlock : HitBlock
             if (containerObject != "null") {
                 Actor actor = LevelLoader.CheckLineInBrackets(containerObject, gameObject, true, null, ActorRegistry.ActorSettings.CreatedActorTypes.EnableAfterTime, time);
                 actor.transform.position = new Vector3(actor.transform.position.x, bcs.GetExtentsYPos() - 0.5f);
-                actor.rigidBody.velocity = RigidVector(null, 12f);
+
+                if (actor.IsActor(out PowerUp powerUp)) {
+                    if (player != null) {
+                        if (progressive && powerUp.GetPowerUpInt() > 1 && player.GetPowerupInt() <= 0) {
+                            Destroy(actor.gameObject);
+
+                            Actor actor0 = LevelLoader.CheckLineInBrackets("[id=mushroom]", gameObject, true, null, ActorRegistry.ActorSettings.CreatedActorTypes.EnableAfterTime, time);
+                            actor0.transform.position = new Vector3(actor0.transform.position.x, bcs.GetExtentsYPos() - 0.5f);
+
+                            powerUp = actor0.GetComponent<PowerUp>();
+                        }
+                    }
+
+                    StartCoroutine(PowerUpOffAnim(powerUp));
+                }
+                else actor.rigidBody.velocity = RigidVector(null, 12f);
 
                 if (actor.gameObject.transform.localScale.x > 1f || actor.gameObject.transform.localScale.y > 1f)
                     StartCoroutine(SizeIncreaseOfActor(actor.gameObject.transform, time, 0.05f));
@@ -77,6 +94,26 @@ public class ContainerBlock : HitBlock
     }
 
     public virtual bool UsedBoolean() { return getUsed; }
+
+    private IEnumerator PowerUpOffAnim(PowerUp powerup)
+    {
+        float yPosBefore = powerup.transform.position.y;
+
+        while (true) {
+            powerup.BooleanBoxAndRigid(false);
+
+            if (Resume()) {
+                powerup.transform.position += new Vector3(0f, 0.025f, 0f);
+                
+                if (powerup.transform.position.y >= yPosBefore + 1f) {
+                    powerup.BooleanBoxAndRigid(true);
+                    yield break;
+                }
+            }
+
+            yield return new WaitForFixedUpdate();
+        }
+    }
 
     private IEnumerator SizeIncreaseOfActor(Transform transF, float untilTime, float timeTakeToIncrease)
     {

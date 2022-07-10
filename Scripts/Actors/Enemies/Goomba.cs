@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class Goomba : WalkingEnemies
+public class Goomba : Enemies
 {
     public Vector2 bigDestroyedVelocity = new Vector2(6f, 10f);
     public string spawnedEnemy = null;
@@ -43,8 +43,8 @@ public class Goomba : WalkingEnemies
                 Actor goomba = LevelLoader.CheckLineInBrackets(enemy, gameObject, true, null, ActorRegistry.ActorSettings.CreatedActorTypes.CreatedLayer);
                 goomba.rigidBody.velocity = RigidVector((i % 2 == 0 ? -bigDestroyedVelocity.x : bigDestroyedVelocity.x) / j, bigDestroyedVelocity.y * (j / (j > 1 ? 2 : 1)));
 
-                if (goomba.IsActor(out WalkingEnemies walkEnemy))
-                    walkEnemy.startsGoingRight = true;
+                if (goomba.IsActor(out Enemies enemy0))
+                    enemy0.startsGoingRight = true;
             }
 
             PlayExplosionSound();

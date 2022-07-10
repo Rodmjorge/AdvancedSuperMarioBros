@@ -224,7 +224,7 @@ public abstract class Actor : MonoBehaviour
     }
 
     //invincible frames - 99 timer
-    public virtual IEnumerator InvincibleFrames(SpriteRenderer spriteR, float timeToStart, float timeToDie = 2f, IEnumerator runWhenStop = null, bool destroyGO = true)
+    public virtual IEnumerator InvincibleFrames(SpriteRenderer spriteR, float timeToStart, float timeToDie = 2f, IEnumerator runWhenStop = null, bool destroyGO = true, float timeMult = 1f)
     {
         GameObject GO = spriteR.gameObject;
 
@@ -245,15 +245,18 @@ public abstract class Actor : MonoBehaviour
                         spriteR.color = new Color(spriteR.color.r, spriteR.color.g, spriteR.color.b, 1f);
                     }
 
-                    if (timer.UntilTime(timeToStart + 1f, 99, false) && j < 1)
+                    if (timer.UntilTime(timeToStart + (1f * timeMult), 99, false) && j < 1)
                         j++;
-                    else if (timer.UntilTime(timeToStart + 2f, 99, false) && j < 2)
+                    else if (timer.UntilTime(timeToStart + (2f * timeMult), 99, false) && j < 2)
                         j++;
-                    else if (timer.UntilTime(timeToStart + 3f, 99, false) && j < 3)
+                    else if (timer.UntilTime(timeToStart + (3f * timeMult), 99, false) && j < 3)
                         j++;
-                    else if (timer.UntilTime(timeToDie + timeToStart + 3f, 99, false)) {
+                    else if (timer.UntilTime(timeToDie + timeToStart + (3f * timeMult), 99, false)) {
                         if (runWhenStop != null) StartCoroutine(runWhenStop);
                         if (destroyGO) Destroy(GO);
+
+                        spriteR.color = new Color(spriteR.color.r, spriteR.color.g, spriteR.color.b, 1f);
+                        yield break;
                     }
                 }
             }

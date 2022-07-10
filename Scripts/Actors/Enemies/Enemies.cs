@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class Enemies : Actor
+public class Enemies : WalkingActors
 {
     public float triggerSetTime = 0.5f;
 
@@ -9,6 +9,8 @@ public class Enemies : Actor
     {
         targetIDSet = SetTargetID(s, beforeEqual);
         triggerSetTime = LevelLoader.CreateVariable(s, beforeEqual, "triggerSetTime", triggerSetTime);
+
+        base.DataLoaded(s, beforeEqual);
     }
 
     public override void SetTargetBoolean(bool b, float time = 0)
@@ -45,7 +47,7 @@ public class Enemies : Actor
     }
 
     public virtual bool UseTargetID() { return true; }
-    public virtual LayerMask GetLayerMask() { return LayerMaskInterface.grounded + LayerMaskInterface.enemy; }
+    public override LayerMask GetLayerMask() { return LayerMaskInterface.grounded + LayerMaskInterface.enemy; }
 
 
     public override void Collided(GameObject GO, Actor actor)

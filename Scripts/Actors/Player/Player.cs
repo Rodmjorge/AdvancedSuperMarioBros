@@ -11,12 +11,22 @@ public class Player : Actor
         new Vector2[] { new Vector2(0.8f, 0.8f), new Vector2(0f, -.1f) }, //small size
         new Vector2[] { new Vector2(0.8f, 0.5f), new Vector2(0f, -.25f) }, //crouched small size
         new Vector2[] { new Vector2(0.85f, 1.7f), new Vector2(0f, -.15f) }, //big size
-        new Vector2[] { new Vector2(0.85f, 0.9f), new Vector2(0f, -.05f) } //crouched big size
+        new Vector2[] { new Vector2(0.85f, 0.9f), new Vector2(0f, -.55f) } //crouched big size
     };
     public static readonly float[] shiftYWhenHolding = new float[] {
         0.15f, //small size
-        0f //crouched small size
+        0f, //crouched small size
+        0.3f, //big size
+        -0.2f, //crouched big size
     };
+
+    /* 0 - small mario
+     * 1 - mushroom
+     * 2 - fire flower
+     */
+    public int powerup = 0;
+    protected bool isBig { get { return powerup > 0; } }
+
 
     public override void DataLoaded(string s, string beforeEqual) { return; }
 
@@ -34,6 +44,12 @@ public class Player : Actor
 
     internal bool isHoldingSomething;
     private Actor whatIsHolding;
+
+    public override void Start()
+    {
+        StartCoroutine(GotPowerup(1, this));
+        base.Start();
+    }
 
     public override void Tick()
     {
@@ -142,11 +158,87 @@ public class Player : Actor
 
         if (addToScore) scoreManager.AddIndex(1, true);
     }
+
+    internal IEnumerator GotPowerup(int i, Actor actor, float[] f = null, string s = "powerup", bool changeSprite = true)
+    {
+        float[] smallToBig = (f == null) ? new float[] { 0.6f, 0.8f, 0.7f, 0.9f, 0.8f, 1f } : f;
+
+        bool wasNotBig = !isBig;
+        int j = powerup;
+        float yPosBefore = transform.position.y;
+
+        ChangePowerupStatus(i, changeSprite);
+        LevelManager.ChangePauseState(true);
+        AudioManager.PlayAudio(s);
+        TimerClass timerT = new TimerClass(1);
+
+        int k = 0;
+        int l = 0;
+        while (true) {
+            if (timerT.UntilTime(0f)) {
+                if (wasNotBig) {
+                    transform.position = new Vector3(transform.position.x, yPosBefore + (smallToBig[k] - 0.5f));
+                    transform.localScale = new Vector3(transform.localScale.x, smallToBig[k], transform.localScale.z);
+                }
+                else
+                    spriteR.sprite = (l % 2 == 0) ? GetSpriteFromPowerupInt(powerup, spriteR.sprite) : GetSpriteFromPowerupInt(j, spriteR.sprite);
+
+                k++;
+                l++;
+                timerT.ResetTimer(1, -0.12f);
+
+                if (k >= smallToBig.Length) {
+                    LevelManager.ChangePauseState(false);
+                    anim.speed = 1;
+
+                    yield break; 
+                }
+            }
+
+            yield return new WaitForFixedUpdate();
+        }
+    }
     internal void HitPlayer(GameObject GO, Actor actor)
     {
-        anim.SetBool("death", true);
-        LevelManager.StatusOfScene(true);
+        float[] f = new float[] { 0.8f, 0.9f, 0.7f, 0.8f, 0.6f, 0.5f };
+
+        if (!IsInvincible()) {
+            if (isBig) {
+                StartCoroutine(GotPowerup(powerup > 1 ? 1 : 0, actor, f, "player_hit", powerup > 1));
+                StartCoroutine(InvincibleFrames(spriteR, 0f, 1f, StopInvincibleFrames(), false, 0.5f));
+            }
+            else {
+                anim.SetBool("death", true);
+                LevelManager.StatusOfScene(true);
+            }
+        }
     }
+
+    private IEnumerator StopInvincibleFrames()
+    {
+        ResetInvincibleFrames();
+        yield break;
+    }
+
+
+    public void ChangePowerupStatus(int i, bool changeSprite = true)
+    {
+        powerup = i;
+        spriteR.sprite = GetSpriteFromPowerupInt(i, spriteR.sprite, true, changeSprite);
+    }
+    internal Sprite GetSpriteFromPowerupInt(int i, Sprite sprite, bool playAnim = false, bool changeSprite = true)
+    {
+        string[] animString = new string[] {
+            "big", //mushroom
+            "fire" //fire flower
+        };
+        string s = (i != 0 ? $"_{ animString[i - 1] }" : string.Empty);
+
+        if (playAnim) anim.Play("stopped" + s);
+        return changeSprite ? Resources.Load<Sprite>(GetSpritePath() + "player_mario" + s) : sprite;
+    }
+
+    public int GetPowerupInt() { return powerup; }
 
     private bool IsWalking() { return isWalking; }
     private bool IsMoving() { return rigidBody.velocity.x < -0.25f || rigidBody.velocity.x > 0.25f; }
@@ -166,12 +258,14 @@ public class Player : Actor
         whatIsHolding = null;
     }
 
+    public bool IsInvincible() { return timer.GetTime(99) > 0f; }
     public bool IsOnGround() { return ColliderCheck.CollidedWithWall(ColliderCheck.WallDirection.Ground, boxCollider, layerMask); }
     private bool IsFalling() { return !IsOnGround(); }
-    private int GetIndexOfBCS() { return (IsCrouching() && !IsJumping()) ? 1 : 0; }
+    private int GetIndexOfBCS() { return (IsCrouching() && !IsJumping()) ? (isBig ? 3 : 1) : (isBig ? 2 : 0); }
 
     private float GetJumpForce() { return 9f; }
     private string GetJumpSound() { return "small_mario_jump"; }
+    internal static string GetSpritePath() { return SpritePath("Player"); }
 
     
     public bool IsTryingToHold() { return Input.GetKey(GetHoldingKeyCode()); }
